@@ -9,11 +9,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Mitskiyu/capyspace/internal/database"
 	"github.com/Mitskiyu/capyspace/internal/server"
 )
 
 func main() {
-	srv := server.New()
+	db := database.Connect()
+	defer db.Close()
+
+	srv := server.New(db)
 
 	go func() {
 		log.Printf("Capyspace server starting on port %s...", srv.Addr[1:])
