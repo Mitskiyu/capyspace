@@ -47,3 +47,9 @@
     --font-body: "Rubik", Helvetica, system-ui;
     --font-head: "Fredoka", Tahoma, system-ui;
 }
+
+@layer base {
+    html {
+        background-color: var(--color-background0);
+    }
+}
