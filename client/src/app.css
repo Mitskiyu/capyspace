@@ -1,5 +1,27 @@
 @import "tailwindcss";
 
+@font-face {
+    font-family: Rubik;
+    src: url("./lib/assets/fonts/Rubik-VariableFont_wght.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: Fredoka;
+    src: url("./lib/assets/fonts/Fredoka-VariableFont_wdth,wght.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: Tahoma;
+    font-display: swap;
+    letter-spacing: 0.05px;
+}
+
+@font-face {
+    font-family: Helvetica;
+    font-display: swap;
+    letter-spacing: 0.3px;
+}
+
 @theme {
     --color-background0: oklch(0.98 0.013857 304.1416);
     --color-background1: oklch(0.94 0.0331 300.93);
@@ -21,4 +43,7 @@
     --color-success: oklch(0.79 0.1136 162.13);
     --color-warning: oklch(0.82 0.1486 72.1);
     --color-error: oklch(0.71 0.1812 22.84);
+
+    --font-body: "Rubik", Helvetica, system-ui;
+    --font-head: "Fredoka", Tahoma, system-ui;
 }
