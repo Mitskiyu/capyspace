@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Icon from "./svg/Icon.svelte";
+    import Icon from "./icons/Icon.svelte";
 
     let { title, fontSize, iconSize } = $props();
 </script>
