@@ -1,5 +1,6 @@
 <script lang="ts">
     import { X } from "@lucide/svelte";
+    import { validateEmail } from "$lib/auth/form";
     import SignIn from "../functional/SignIn.svelte";
     import SignUp from "../functional/SignUp.svelte";
     import Google from "../visual/icons/Google.svelte";
@@ -8,7 +9,11 @@
     type AuthState = "initial" | "verify" | "signup" | "signin";
 
     let { isModal } = $props();
-    let authState = $state<AuthState>("signin");
+    let authState = $state<AuthState>("initial");
+
+    // states for submit button
+    let email = $state<string>("");
+    let validEmail = $derived<boolean>(validateEmail(email));
 
     const handleSubmit = async (e: SubmitEvent): Promise<void> => {
         e.preventDefault();
@@ -75,6 +80,7 @@
                 <input
                     type="text"
                     placeholder="Enter your email"
+                    bind:value={email}
                     oninput={() => {
                         if (authState !== "initial") {
                             authState = "initial";
@@ -103,12 +109,10 @@
                 <!-- submit button -->
                 <button
                     type="submit"
-                    disabled={authState === "initial"}
+                    disabled={!validEmail}
                     class={[
                         "bg-background3 hover:bg-overlay1 focus:outline-overlay1 mt-2 h-9 w-11/12 rounded-lg focus:outline-1",
-                        authState === "initial"
-                            ? "cursor-not-allowed opacity-60"
-                            : "hover:cursor-pointer",
+                        !validEmail ? "cursor-not-allowed opacity-60" : "hover:cursor-pointer",
                     ]}
                 >
                     <span class="p-1 text-base">
