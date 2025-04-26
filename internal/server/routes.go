@@ -29,6 +29,7 @@ func (s *Server) checkEmailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	defer r.Body.Close()
 	if err != nil {
 		errorResponse(w, http.StatusBadRequest, "Invalid request format", fmt.Errorf("email decode error: %v", err))
 		return
