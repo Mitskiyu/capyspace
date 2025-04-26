@@ -2,31 +2,25 @@ package server
 
 import (
 	"database/sql"
-	"encoding/json"
 	"net/http"
 	"os"
+
+	dbgen "github.com/Mitskiyu/capyspace/internal/database/sqlc"
 )
 
-func New(db *sql.DB) *http.Server {
+type Server struct {
+	dbConn    *sql.DB
+	dbQueries *dbgen.Queries
+}
+
+func New(dbConn *sql.DB, dbQueries *dbgen.Queries) *http.Server {
+	s := &Server{
+		dbConn:    dbConn,
+		dbQueries: dbQueries,
+	}
+
 	mux := http.NewServeMux()
-
-	mux.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
-		status := "ok"
-		dbStatus := "connected"
-
-		err := db.Ping()
-		if err != nil {
-			dbStatus = "disconnected: " + err.Error()
-		}
-
-		res := map[string]string{
-			"status": status,
-			"db":     dbStatus,
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(res)
-	})
+	mux.HandleFunc("/api/health", s.healthHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
