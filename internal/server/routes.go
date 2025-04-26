@@ -1,14 +1,14 @@
 package server
 
-import "net/http"
+import (
+	"net/http"
+)
 
 func (s Server) healthHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		errorResponse(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/plain; charset=utf8")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
+	successResponse(w, http.StatusOK, "OK")
 }
