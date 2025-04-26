@@ -21,6 +21,7 @@ func New(dbConn *sql.DB, dbQueries *dbgen.Queries) *http.Server {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/health", s.healthHandler)
+	mux.HandleFunc("/api/auth/check-email", s.checkEmailHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
