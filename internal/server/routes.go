@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/Mitskiyu/capyspace/internal/validate"
 )
 
 func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
@@ -32,12 +34,12 @@ func (s *Server) checkEmailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if requestBody.Email == "" {
-		errorResponse(w, http.StatusBadRequest, "Email is required", fmt.Errorf("email validation error: empty"))
+	email := requestBody.Email
+	if err := validate.Email(email); err != nil {
+		errorResponse(w, http.StatusBadRequest, "Email is invalid", err)
 		return
 	}
 
-	email := requestBody.Email
 	ctx := r.Context()
 	res := make(map[string]bool)
 
