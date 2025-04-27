@@ -2,10 +2,12 @@ package server
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"os"
 
 	dbgen "github.com/Mitskiyu/capyspace/internal/database/sqlc"
+	"github.com/jub0bs/cors"
 )
 
 type Server struct {
@@ -19,6 +21,16 @@ func New(dbConn *sql.DB, dbQueries *dbgen.Queries) *http.Server {
 		dbQueries: dbQueries,
 	}
 
+	allowedOrigins := os.Getenv("CORS_ORIGINS")
+	corsMiddleware, err := cors.NewMiddleware(cors.Config{
+		Origins:        []string{allowedOrigins},
+		Methods:        []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
+		RequestHeaders: []string{"Authorization"},
+	})
+	if err != nil {
+		log.Fatalf("cors error: %v", err)
+	}
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/health", s.healthHandler)
 	mux.HandleFunc("/api/auth/check-email", s.checkEmailHandler)
@@ -30,6 +42,6 @@ func New(dbConn *sql.DB, dbQueries *dbgen.Queries) *http.Server {
 
 	return &http.Server{
 		Addr:    ":" + port,
-		Handler: mux,
+		Handler: corsMiddleware.Wrap(mux),
 	}
 }
