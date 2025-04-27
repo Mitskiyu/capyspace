@@ -1,6 +1,6 @@
 <script lang="ts">
     import { X } from "@lucide/svelte";
-    import { validateEmail } from "$lib/auth/form";
+    import { validateEmail, checkEmail } from "$lib/auth";
     import SignIn from "../functional/SignIn.svelte";
     import SignUp from "../functional/SignUp.svelte";
     import Google from "../visual/icons/Google.svelte";
@@ -11,6 +11,9 @@
     let { isModal } = $props();
     let authState = $state<AuthState>("initial");
 
+    // user facing error
+    let err = $state<string>("");
+
     // states for submit button
     let email = $state<string>("");
     let validEmail = $derived<boolean>(validateEmail(email));
@@ -18,10 +21,23 @@
     const handleSubmit = async (e: SubmitEvent): Promise<void> => {
         e.preventDefault();
 
-        // TODO:
         // check if email exists
-        // true -> go to signin
-        // else -> go to verify
+        const { exists, error } = await checkEmail(email);
+        if (error) {
+            err = error;
+            return;
+        }
+
+        if (exists === false) {
+            // go to verify
+            authState = "verify";
+        } else {
+            // go to signin
+            authState = "signin";
+        }
+
+        console.error(err);
+        // TODO:
         // send verification code
         // check if code correct
         // success -> go to signup
