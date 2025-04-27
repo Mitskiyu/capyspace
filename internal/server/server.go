@@ -25,7 +25,7 @@ func New(dbConn *sql.DB, dbQueries *dbgen.Queries) *http.Server {
 	corsMiddleware, err := cors.NewMiddleware(cors.Config{
 		Origins:        []string{allowedOrigins},
 		Methods:        []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
-		RequestHeaders: []string{"Authorization"},
+		RequestHeaders: []string{"Authorization", "Content-Type"},
 	})
 	if err != nil {
 		log.Fatalf("cors error: %v", err)
