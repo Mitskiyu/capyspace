@@ -46,11 +46,11 @@
 
 <div
     class={[
-        "bg-background2 text-text font-body outline-overlay2/40 w-80 rounded-xl px-4 py-3 outline-1",
-        { "h-[24em]": authState === "initial" },
-        { "h-[30em]": authState === "verify" },
-        { "h-[30em]": authState === "signup" },
-        { "h-[28em]": authState === "signin" },
+        "bg-background2 text-text font-body outline-overlay2/40 h-auto w-80 rounded-xl px-4 py-3 outline-1",
+        { "min-h-[20em]": authState === "initial" },
+        { "min-h-[30em]": authState === "verify" },
+        { "min-h-[30em]": authState === "signup" },
+        { "min-h-[28em]": authState === "signin" },
     ]}
 >
     <!-- close button if modal -->
@@ -93,6 +93,11 @@
 
             <!-- form -->
             <form onsubmit={handleSubmit} class="flex w-full flex-col items-center gap-y-2.5">
+                <!-- error message -->
+                {#if err}
+                    <span class="text-error -mt-4 text-sm">{err}</span>
+                {/if}
+
                 <input
                     type="text"
                     placeholder="Enter your email"
@@ -159,6 +164,7 @@
                     </button>
                 {/if}
             </form>
+            <div class="h-2"></div>
         </div>
     </div>
 </div>
