@@ -4,8 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
+	"github.com/Mitskiyu/capyspace/internal/auth"
 	"github.com/Mitskiyu/capyspace/internal/validate"
 )
 
@@ -57,4 +59,35 @@ func (s *Server) checkEmailHandler(w http.ResponseWriter, r *http.Request) {
 
 	res["exists"] = true
 	successResponse(w, http.StatusOK, res)
+}
+
+func (s *Server) sendVerificationHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		errorResponse(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
+		return
+	}
+
+	var requestBody struct {
+		Email string `json:"email"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	defer r.Body.Close()
+	if err != nil {
+		errorResponse(w, http.StatusBadRequest, "Invalid request format", fmt.Errorf("email decode error: %v", err))
+		return
+	}
+
+	ctx := r.Context()
+	email := requestBody.Email
+
+	token, err := auth.CreateToken(ctx, s.dbQueries, email)
+	if err != nil {
+		errorResponse(w, http.StatusInternalServerError, "Service temporarily unavailable", err)
+	}
+
+	log.Print(token)
+
+	// TODO:
+	// send email
 }
