@@ -7,18 +7,21 @@ import (
 	"os"
 
 	dbgen "github.com/Mitskiyu/capyspace/internal/database/sqlc"
+	"github.com/aws/aws-sdk-go-v2/service/sesv2"
 	"github.com/jub0bs/cors"
 )
 
 type Server struct {
-	dbConn    *sql.DB
-	dbQueries *dbgen.Queries
+	dbConn      *sql.DB
+	dbQueries   *dbgen.Queries
+	emailClient *sesv2.Client
 }
 
-func New(dbConn *sql.DB, dbQueries *dbgen.Queries) *http.Server {
+func New(dbConn *sql.DB, dbQueries *dbgen.Queries, emailClient *sesv2.Client) *http.Server {
 	s := &Server{
-		dbConn:    dbConn,
-		dbQueries: dbQueries,
+		dbConn:      dbConn,
+		dbQueries:   dbQueries,
+		emailClient: emailClient,
 	}
 
 	allowedOrigins := os.Getenv("CORS_ORIGINS")

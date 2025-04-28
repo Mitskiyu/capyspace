@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/Mitskiyu/capyspace/internal/auth"
+	"github.com/Mitskiyu/capyspace/internal/email"
 	"github.com/Mitskiyu/capyspace/internal/validate"
 )
 
@@ -37,8 +37,8 @@ func (s *Server) checkEmailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email := requestBody.Email
-	if err := validate.Email(email); err != nil {
+	emailAddr := requestBody.Email
+	if err := validate.Email(emailAddr); err != nil {
 		errorResponse(w, http.StatusBadRequest, "Email is invalid", err)
 		return
 	}
@@ -46,7 +46,7 @@ func (s *Server) checkEmailHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	res := make(map[string]bool)
 
-	_, err = s.dbQueries.GetUserByEmail(ctx, email)
+	_, err = s.dbQueries.GetUserByEmail(ctx, emailAddr)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			res["exists"] = false
@@ -79,15 +79,29 @@ func (s *Server) sendVerificationHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	ctx := r.Context()
-	email := requestBody.Email
-
-	token, err := auth.CreateToken(ctx, s.dbQueries, email)
+	emailAddr := requestBody.Email
+	if err := validate.Email(emailAddr); err != nil {
+		errorResponse(w, http.StatusBadRequest, "Email is invalid", err)
+		return
+	}
+	token, err := auth.CreateToken(ctx, s.dbQueries, emailAddr)
 	if err != nil {
 		errorResponse(w, http.StatusInternalServerError, "Service temporarily unavailable", err)
+		return
 	}
 
-	log.Print(token)
+	emailConf := email.Email{
+		To:       []string{emailAddr},
+		From:     "noreply@capyspace.com",
+		Subject:  "Capyspace Verification Code",
+		HTMLBody: fmt.Sprintf("<h1>Code: %s</h1>", token),
+		RawBody:  fmt.Sprintf("Code: %s", token),
+	}
 
-	// TODO:
-	// send email
+	if err := email.Send(ctx, s.emailClient, emailConf); err != nil {
+		errorResponse(w, http.StatusBadRequest, "Could not send email, try again later", err)
+		return
+	}
+
+	successResponse(w, http.StatusOK, "We sent a code to your inbox")
 }

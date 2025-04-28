@@ -20,7 +20,7 @@ type Email struct {
 	RawBody  string
 }
 
-func New() (*sesv2.Client, error) {
+func New() *sesv2.Client {
 	region := os.Getenv("AWS_REGION")
 
 	if region == "" {
@@ -31,37 +31,37 @@ func New() (*sesv2.Client, error) {
 		config.WithRegion(region),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("unable to load AWS SDK config: %v", err)
+		log.Fatalf("Could not load AWS SDK config: %v", err)
 	}
 
 	svc := sesv2.NewFromConfig(cfg)
-	return svc, nil
+	return svc
 }
 
-func Send(ctx context.Context, svc *sesv2.Client, email Email) error {
+func Send(ctx context.Context, svc *sesv2.Client, emailConf Email) error {
 	input := &sesv2.SendEmailInput{
 		Destination: &types.Destination{
-			ToAddresses: email.To,
+			ToAddresses: emailConf.To,
 		},
 		Content: &types.EmailContent{
 			Simple: &types.Message{
 				Body: &types.Body{
 					Html: &types.Content{
 						Charset: aws.String("UTF-8"),
-						Data:    aws.String(email.HTMLBody),
+						Data:    aws.String(emailConf.HTMLBody),
 					},
 					Text: &types.Content{
 						Charset: aws.String("UTF-8"),
-						Data:    aws.String(email.RawBody),
+						Data:    aws.String(emailConf.RawBody),
 					},
 				},
 				Subject: &types.Content{
 					Charset: aws.String("UTF-8"),
-					Data:    aws.String(email.Subject),
+					Data:    aws.String(emailConf.Subject),
 				},
 			},
 		},
-		FromEmailAddress: aws.String(email.From),
+		FromEmailAddress: aws.String(emailConf.From),
 	}
 
 	output, err := svc.SendEmail(ctx, input)

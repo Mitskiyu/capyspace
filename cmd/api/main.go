@@ -11,6 +11,7 @@ import (
 
 	db "github.com/Mitskiyu/capyspace/internal/database"
 	dbgen "github.com/Mitskiyu/capyspace/internal/database/sqlc"
+	"github.com/Mitskiyu/capyspace/internal/email"
 	"github.com/Mitskiyu/capyspace/internal/server"
 )
 
@@ -18,8 +19,9 @@ func main() {
 	dbConn := db.Connect()
 	defer dbConn.Close()
 	dbQueries := dbgen.New(dbConn)
+	emailClient := email.New()
 
-	srv := server.New(dbConn, dbQueries)
+	srv := server.New(dbConn, dbQueries, emailClient)
 
 	go func() {
 		log.Printf("Capyspace server starting on port %s...", srv.Addr[1:])
