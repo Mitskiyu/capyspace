@@ -18,3 +18,11 @@ type User struct {
 	Password      sql.NullString
 	EmailVerified time.Time
 }
+
+type VerificationToken struct {
+	ID        uuid.UUID
+	Email     string
+	Token     string
+	Used      bool
+	ExpiresAt time.Time
+}
