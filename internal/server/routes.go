@@ -126,8 +126,14 @@ func (s *Server) checkVerificationHandler(w http.ResponseWriter, r *http.Request
 	token := requestBody.Token
 	ctx := r.Context()
 
-	// TODO:
-	// validate token & email
+	if err := validate.Email(email); err != nil {
+		errorResponse(w, http.StatusBadRequest, "Email is invalid", err)
+		return
+	}
+
+	if err := validate.VerificationToken(token); err != nil {
+		errorResponse(w, http.StatusBadRequest, "Code is invalid", err)
+	}
 
 	verified, err := auth.CheckVerificationToken(ctx, s.dbQueries, email, token)
 	if err != nil {
