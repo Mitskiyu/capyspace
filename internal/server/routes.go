@@ -82,7 +82,7 @@ func (s *Server) sendVerificationHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	ctx := r.Context()
-	token, err := auth.CreateToken(ctx, s.dbQueries, emailAddr)
+	token, err := auth.CreateVerificationToken(ctx, s.dbQueries, emailAddr)
 	if err != nil {
 		errorResponse(w, http.StatusInternalServerError, "Could not send email, try again later", err)
 		return
@@ -99,6 +99,44 @@ func (s *Server) sendVerificationHandler(w http.ResponseWriter, r *http.Request)
 	if err := email.Send(ctx, s.emailClient, emailConf); err != nil {
 		errorResponse(w, http.StatusBadRequest, "Could not send email, try again later", err)
 		return
+	}
+
+	successResponse(w, http.StatusOK, true)
+}
+
+func (s *Server) checkVerificationHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		errorResponse(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
+		return
+	}
+
+	var requestBody struct {
+		Email string
+		Token string
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	defer r.Body.Close()
+	if err != nil {
+		errorResponse(w, http.StatusBadRequest, "Invalid request format", fmt.Errorf("body decode error: %v", err))
+		return
+	}
+
+	email := requestBody.Email
+	token := requestBody.Token
+	ctx := r.Context()
+
+	// TODO:
+	// validate token & email
+
+	verified, err := auth.CheckVerificationToken(ctx, s.dbQueries, email, token)
+	if err != nil {
+		errorResponse(w, http.StatusInternalServerError, "Could not verify, try again later", err)
+		return
+	}
+
+	if !verified {
+		errorResponse(w, http.StatusBadRequest, "Invalid or expired code", nil)
 	}
 
 	successResponse(w, http.StatusOK, true)
