@@ -44,21 +44,18 @@ func (s *Server) checkEmailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	res := make(map[string]bool)
 
 	_, err = s.dbQueries.GetUserByEmail(ctx, emailAddr)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			res["exists"] = false
-			successResponse(w, http.StatusOK, res)
+			successResponse(w, http.StatusOK, false)
 		} else {
 			errorResponse(w, http.StatusInternalServerError, "Service temporarily unavailable", fmt.Errorf("database error: %v", err))
 		}
 		return
 	}
 
-	res["exists"] = true
-	successResponse(w, http.StatusOK, res)
+	successResponse(w, http.StatusOK, false)
 }
 
 func (s *Server) sendVerificationHandler(w http.ResponseWriter, r *http.Request) {
@@ -78,15 +75,16 @@ func (s *Server) sendVerificationHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	ctx := r.Context()
 	emailAddr := requestBody.Email
 	if err := validate.Email(emailAddr); err != nil {
 		errorResponse(w, http.StatusBadRequest, "Email is invalid", err)
 		return
 	}
+
+	ctx := r.Context()
 	token, err := auth.CreateToken(ctx, s.dbQueries, emailAddr)
 	if err != nil {
-		errorResponse(w, http.StatusInternalServerError, "Service temporarily unavailable", err)
+		errorResponse(w, http.StatusInternalServerError, "Could not send email, try again later", err)
 		return
 	}
 
@@ -103,5 +101,5 @@ func (s *Server) sendVerificationHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	successResponse(w, http.StatusOK, "We sent a code to your inbox")
+	successResponse(w, http.StatusOK, true)
 }

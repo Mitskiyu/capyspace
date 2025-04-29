@@ -33,7 +33,7 @@
                 return;
             }
 
-            if (exists === false) {
+            if (!exists) {
                 // go to verify
                 authState = "verify";
             } else {
@@ -44,15 +44,15 @@
 
         if (authState === "verify") {
             // send verification code
-            const { msg, error } = await sendVerification(email);
+            const { success, error } = await sendVerification(email);
 
             if (error) {
                 err = error;
                 return;
             }
 
-            if (msg) {
-                message = msg;
+            if (success) {
+                message = "We sent a code to your inbox";
             }
 
             // TODO:

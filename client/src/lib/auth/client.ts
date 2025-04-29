@@ -15,13 +15,15 @@ export async function checkEmail(email: string): Promise<{ exists?: boolean; err
             return { error: data?.error || "Service temporarily unavailable" };
         }
 
-        return { exists: data.data?.exists };
+        return { exists: data.data };
     } catch (error) {
         return { error: error instanceof Error ? error.message : "Unknown error" };
     }
 }
 
-export async function sendVerification(email: string): Promise<{ msg?: string; error?: string }> {
+export async function sendVerification(
+    email: string
+): Promise<{ success?: boolean; error?: string }> {
     const url = PUBLIC_API_URL;
 
     try {
@@ -36,7 +38,7 @@ export async function sendVerification(email: string): Promise<{ msg?: string; e
             return { error: data?.error || "Could not send email," };
         }
 
-        return { msg: data.data };
+        return { success: data.data };
     } catch (error) {
         console.error(`Send verification err: ${error}`);
         return { error: "Could not send email, please try again later" };
