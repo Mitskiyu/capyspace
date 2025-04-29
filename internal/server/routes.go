@@ -50,7 +50,7 @@ func (s *Server) checkEmailHandler(w http.ResponseWriter, r *http.Request) {
 		if err == sql.ErrNoRows {
 			successResponse(w, http.StatusOK, false)
 		} else {
-			errorResponse(w, http.StatusInternalServerError, "Service temporarily unavailable", fmt.Errorf("database error: %v", err))
+			errorResponse(w, http.StatusInternalServerError, "Could not check email, try again later", fmt.Errorf("database error: %v", err))
 		}
 		return
 	}

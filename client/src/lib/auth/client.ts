@@ -12,12 +12,13 @@ export async function checkEmail(email: string): Promise<{ exists?: boolean; err
 
         const data = await res.json();
         if (!res.ok) {
-            return { error: data?.error || "Service temporarily unavailable" };
+            return { error: data?.error || "Could not check email, try again later" };
         }
 
         return { exists: data.data };
     } catch (error) {
-        return { error: error instanceof Error ? error.message : "Unknown error" };
+        console.error(`Check email err: ${error}`);
+        return { error: "Could not check email, try again later" };
     }
 }
 
@@ -35,12 +36,12 @@ export async function sendVerification(
 
         const data = await res.json();
         if (!res.ok) {
-            return { error: data?.error || "Could not send email," };
+            return { error: data?.error || "Could not send email, try again later" };
         }
 
         return { success: data.data };
     } catch (error) {
         console.error(`Send verification err: ${error}`);
-        return { error: "Could not send email, please try again later" };
+        return { error: "Could not send email, try again later" };
     }
 }

@@ -121,6 +121,7 @@
                     placeholder="Enter your email"
                     bind:value={email}
                     oninput={() => {
+                        err = "";
                         if (authState !== "initial") {
                             authState = "initial";
                         }
@@ -135,6 +136,7 @@
                             pattern="[0-9]*"
                             maxlength="6"
                             placeholder="Enter verification code"
+                            oninput={() => (err = "")}
                             class="focus:outline-overlay2 outline-overlay3/40 bg-background3/40 h-9 w-11/12 rounded-lg px-2 py-1 outline-1"
                         />
                         <span class="text-subtext mt-1 text-sm">{message}</span>
