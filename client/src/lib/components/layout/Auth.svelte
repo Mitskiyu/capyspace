@@ -34,8 +34,20 @@
             }
 
             if (!exists) {
+                // try sending code
+                const { success, error } = await sendVerification(email);
+
+                // if error, stay on initial state
+                if (error) {
+                    err = error;
+                    return;
+                }
+
                 // go to verify
-                authState = "verify";
+                if (success) {
+                    authState = "verify";
+                    message = "We sent a code to your inbox";
+                }
             } else {
                 // go to signin
                 authState = "signin";
@@ -43,18 +55,6 @@
         }
 
         if (authState === "verify") {
-            // send verification code
-            const { success, error } = await sendVerification(email);
-
-            if (error) {
-                err = error;
-                return;
-            }
-
-            if (success) {
-                message = "We sent a code to your inbox";
-            }
-
             // TODO:
             // check if code correct
             // success -> go to signup
