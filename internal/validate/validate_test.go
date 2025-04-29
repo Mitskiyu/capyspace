@@ -48,3 +48,42 @@ func TestEmail(t *testing.T) {
 		})
 	}
 }
+
+func TestVerificationToken(t *testing.T) {
+	tests := []struct {
+		name    string
+		token   string
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{"Valid simple", "123456", false},
+		{"Valid all zero", "000000", false},
+		{"Valid all nine", "999999", false},
+
+		{"Empty string", "", true},
+
+		{"Too short", "12345", true},
+		{"Too long", "1234567", true},
+		{"Non-digit char", "12a456", true},
+		{"Space in token", "12 456", true},
+		{"Special char", "12#456", true},
+		{"Hyphen in token", "12-456", true},
+		{"Alpha only", "abcdef", true},
+		{"Mixed alpha", "1a2b3c", true},
+		{"Unicode digit", "１２３４５６", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotErr := validate.VerificationToken(tt.token)
+			if gotErr != nil {
+				if !tt.wantErr {
+					t.Errorf("VerificationToken() failed: %v", gotErr)
+				}
+				return
+			}
+			if tt.wantErr {
+				t.Fatal("VerificationToken() succeeded unexpectedly")
+			}
+		})
+	}
+}
