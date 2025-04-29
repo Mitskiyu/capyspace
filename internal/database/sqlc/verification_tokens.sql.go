@@ -38,3 +38,49 @@ func (q *Queries) CreateVerificationToken(ctx context.Context, arg CreateVerific
 	)
 	return err
 }
+
+const getValidVerificationToken = `-- name: GetValidVerificationToken :one
+SELECT
+    id,
+    email,
+    token,
+    used,
+    expires_at
+FROM verification_tokens
+WHERE
+    email = $1
+    AND token = $2
+    AND used = FALSE
+    AND expires_at > NOW()
+LIMIT 1
+`
+
+type GetValidVerificationTokenParams struct {
+	Email string
+	Token string
+}
+
+func (q *Queries) GetValidVerificationToken(ctx context.Context, arg GetValidVerificationTokenParams) (VerificationToken, error) {
+	row := q.db.QueryRowContext(ctx, getValidVerificationToken, arg.Email, arg.Token)
+	var i VerificationToken
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Token,
+		&i.Used,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
+const setUsedVerificationToken = `-- name: SetUsedVerificationToken :exec
+UPDATE verification_tokens
+SET used = TRUE
+WHERE
+    id = $1
+`
+
+func (q *Queries) SetUsedVerificationToken(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, setUsedVerificationToken, id)
+	return err
+}
