@@ -5,6 +5,7 @@
     import SignUp from "../functional/SignUp.svelte";
     import Google from "../visual/icons/Google.svelte";
     import Icon from "../visual/icons/Icon.svelte";
+    import { sendVerification } from "$lib/auth/client";
 
     type AuthState = "initial" | "verify" | "signup" | "signin";
 
@@ -14,6 +15,8 @@
     // user facing error
     let err = $state<string>("");
 
+    let message = $state<string>("");
+
     // states for submit button
     let email = $state<string>("");
     let validEmail = $derived<boolean>(validateEmail(email));
@@ -21,26 +24,41 @@
     const handleSubmit = async (e: SubmitEvent): Promise<void> => {
         e.preventDefault();
 
-        // check if email exists
-        const { exists, error } = await checkEmail(email);
-        if (error) {
-            err = error;
-            return;
+        if (authState === "initial") {
+            // check if email exists
+            const { exists, error } = await checkEmail(email);
+
+            if (error) {
+                err = error;
+                return;
+            }
+
+            if (exists === false) {
+                // go to verify
+                authState = "verify";
+            } else {
+                // go to signin
+                authState = "signin";
+            }
         }
 
-        if (exists === false) {
-            // go to verify
-            authState = "verify";
-        } else {
-            // go to signin
-            authState = "signin";
-        }
+        if (authState === "verify") {
+            // send verification code
+            const { msg, error } = await sendVerification(email);
 
-        console.error(err);
-        // TODO:
-        // send verification code
-        // check if code correct
-        // success -> go to signup
+            if (error) {
+                err = error;
+                return;
+            }
+
+            if (msg) {
+                message = msg;
+            }
+
+            // TODO:
+            // check if code correct
+            // success -> go to signup
+        }
     };
 </script>
 
@@ -119,7 +137,7 @@
                             placeholder="Enter verification code"
                             class="focus:outline-overlay2 outline-overlay3/40 bg-background3/40 h-9 w-11/12 rounded-lg px-2 py-1 outline-1"
                         />
-                        <span class="text-subtext mt-1 text-sm">We sent a code to your inbox</span>
+                        <span class="text-subtext mt-1 text-sm">{message}</span>
                     </div>
                 {:else if authState === "signup"}
                     <SignUp />

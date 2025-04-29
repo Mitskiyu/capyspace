@@ -20,3 +20,25 @@ export async function checkEmail(email: string): Promise<{ exists?: boolean; err
         return { error: error instanceof Error ? error.message : "Unknown error" };
     }
 }
+
+export async function sendVerification(email: string): Promise<{ msg?: string; error?: string }> {
+    const url = PUBLIC_API_URL;
+
+    try {
+        const res = await fetch(`${url}/api/auth/send-verification`, {
+            method: "POST",
+            body: JSON.stringify({ email }),
+            headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+            return { error: data?.error || "Could not send email," };
+        }
+
+        return { msg: data.data };
+    } catch (error) {
+        console.error(`Send verification err: ${error}`);
+        return { error: "Could not send email, please try again later" };
+    }
+}
