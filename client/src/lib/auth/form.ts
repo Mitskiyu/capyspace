@@ -12,3 +12,19 @@ export function validateEmail(email: string): boolean {
 
     return true;
 }
+
+export function validateVT(token: string): boolean {
+    if (!token) {
+        return false;
+    }
+
+    if (token.length !== 6) {
+        return false;
+    }
+
+    if (!/^\d{6}$/.test(token)) {
+        return false;
+    }
+
+    return true;
+}

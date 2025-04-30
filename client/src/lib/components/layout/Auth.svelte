@@ -1,6 +1,6 @@
 <script lang="ts">
     import { X } from "@lucide/svelte";
-    import { validateEmail, checkEmail } from "$lib/auth";
+    import { validateEmail, validateVT, checkEmail } from "$lib/auth";
     import SignIn from "../functional/SignIn.svelte";
     import SignUp from "../functional/SignUp.svelte";
     import Google from "../visual/icons/Google.svelte";
@@ -20,6 +20,8 @@
     // states for submit button
     let email = $state<string>("");
     let validEmail = $derived<boolean>(validateEmail(email));
+    let vt = $state<string>("");
+    let validVT = $derived<boolean>(validateVT(vt));
 
     const handleSubmit = async (e: SubmitEvent): Promise<void> => {
         e.preventDefault();
@@ -133,9 +135,8 @@
                         <input
                             type="text"
                             inputmode="numeric"
-                            pattern="[0-9]*"
-                            maxlength="6"
                             placeholder="Enter verification code"
+                            bind:value={vt}
                             oninput={() => (err = "")}
                             class="focus:outline-overlay2 outline-overlay3/40 bg-background3/40 h-9 w-11/12 rounded-lg px-2 py-1 outline-1"
                         />
@@ -153,7 +154,10 @@
                     disabled={!validEmail}
                     class={[
                         "bg-background3 hover:bg-overlay1 focus:outline-overlay1 mt-2 h-9 w-11/12 rounded-lg focus:outline-1",
-                        !validEmail ? "cursor-not-allowed opacity-60" : "hover:cursor-pointer",
+                        (authState === "initial" && !validEmail) ||
+                        (authState === "verify" && !validVT)
+                            ? "cursor-not-allowed opacity-60"
+                            : "hover:cursor-pointer",
                     ]}
                 >
                     <span class="p-1 text-base">

@@ -1,2 +1,2 @@
-export { validateEmail } from "./form";
+export { validateEmail, validateVT } from "./form";
 export { checkEmail } from "./client";
