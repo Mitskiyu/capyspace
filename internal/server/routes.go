@@ -55,7 +55,7 @@ func (s *Server) checkEmailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	successResponse(w, http.StatusOK, false)
+	successResponse(w, http.StatusOK, true)
 }
 
 func (s *Server) sendVerificationHandler(w http.ResponseWriter, r *http.Request) {
