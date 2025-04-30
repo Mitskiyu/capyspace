@@ -65,7 +65,7 @@ func (s *Server) sendVerificationHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	var requestBody struct {
-		Email string
+		Email string `json:"email"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
@@ -111,8 +111,8 @@ func (s *Server) checkVerficationCodeHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	var requestBody struct {
-		Email string
-		Code  string
+		Email string `json:"email"`
+		Code  string `json:"code"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
@@ -133,6 +133,7 @@ func (s *Server) checkVerficationCodeHandler(w http.ResponseWriter, r *http.Requ
 
 	if err := validate.VerificationCode(code); err != nil {
 		errorResponse(w, http.StatusBadRequest, "Invalid or expired code", err)
+		return
 	}
 
 	verified, err := auth.CheckVerificationCode(ctx, s.dbQueries, email, code)
@@ -143,6 +144,7 @@ func (s *Server) checkVerficationCodeHandler(w http.ResponseWriter, r *http.Requ
 
 	if !verified {
 		errorResponse(w, http.StatusBadRequest, "Invalid or expired code", nil)
+		return
 	}
 
 	successResponse(w, http.StatusOK, true)
