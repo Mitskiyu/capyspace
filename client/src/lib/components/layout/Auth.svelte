@@ -1,11 +1,16 @@
 <script lang="ts">
     import { X } from "@lucide/svelte";
-    import { validateEmail, validateVT, checkEmail } from "$lib/auth";
+    import {
+        validateEmail,
+        validateVerificationCode,
+        checkEmail,
+        sendVerificationCode,
+        checkVerificationCode,
+    } from "$lib/auth";
     import SignIn from "../functional/SignIn.svelte";
     import SignUp from "../functional/SignUp.svelte";
     import Google from "../visual/icons/Google.svelte";
     import Icon from "../visual/icons/Icon.svelte";
-    import { sendVerification } from "$lib/auth/client";
 
     type AuthState = "initial" | "verify" | "signup" | "signin";
 
@@ -20,8 +25,8 @@
     // states for submit button
     let email = $state<string>("");
     let validEmail = $derived<boolean>(validateEmail(email));
-    let vt = $state<string>("");
-    let validVT = $derived<boolean>(validateVT(vt));
+    let vc = $state<string>("");
+    let validVerificationCode = $derived<boolean>(validateVerificationCode(vc));
 
     const handleSubmit = async (e: SubmitEvent): Promise<void> => {
         e.preventDefault();
@@ -37,7 +42,7 @@
 
             if (!exists) {
                 // try sending code
-                const { success, error } = await sendVerification(email);
+                const { success, error } = await sendVerificationCode(email);
 
                 // if error, stay on initial state
                 if (error) {
@@ -54,12 +59,27 @@
                 // go to signin
                 authState = "signin";
             }
+
+            return;
         }
 
         if (authState === "verify") {
-            // TODO:
             // check if code correct
-            // success -> go to signup
+            const { verified, error } = await checkVerificationCode(email, vc);
+
+            if (error) {
+                err = error;
+                return;
+            }
+
+            if (!verified) {
+                err = "Code is invalid or expired";
+            } else {
+                // go to signup
+                authState = "signup";
+            }
+
+            return;
         }
     };
 </script>
@@ -136,7 +156,7 @@
                             type="text"
                             inputmode="numeric"
                             placeholder="Enter verification code"
-                            bind:value={vt}
+                            bind:value={vc}
                             oninput={() => (err = "")}
                             class="focus:outline-overlay2 outline-overlay3/40 bg-background3/40 h-9 w-11/12 rounded-lg px-2 py-1 outline-1"
                         />
@@ -155,7 +175,7 @@
                     class={[
                         "bg-background3 hover:bg-overlay1 focus:outline-overlay1 mt-2 h-9 w-11/12 rounded-lg focus:outline-1",
                         (authState === "initial" && !validEmail) ||
-                        (authState === "verify" && !validVT)
+                        (authState === "verify" && !validVerificationCode)
                             ? "cursor-not-allowed opacity-60"
                             : "hover:cursor-pointer",
                     ]}

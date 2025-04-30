@@ -1,2 +1,2 @@
 export { validateEmail, validateVerificationCode } from "./form";
-export { checkEmail } from "./client";
+export { checkEmail, sendVerificationCode, checkVerificationCode } from "./client";

@@ -22,7 +22,7 @@ export async function checkEmail(email: string): Promise<{ exists?: boolean; err
     }
 }
 
-export async function sendVerification(
+export async function sendVerificationCode(
     email: string
 ): Promise<{ success?: boolean; error?: string }> {
     const url = PUBLIC_API_URL;
@@ -43,5 +43,30 @@ export async function sendVerification(
     } catch (error) {
         console.error(`Send verification err: ${error}`);
         return { error: "Could not send email, try again later" };
+    }
+}
+
+export async function checkVerificationCode(
+    email: string,
+    code: string
+): Promise<{ verified?: boolean; error?: string }> {
+    const url = PUBLIC_API_URL;
+
+    try {
+        const res = await fetch(`${url}/api/auth/check-verification`, {
+            method: "POST",
+            body: JSON.stringify({ email, code }),
+            headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+            return { error: data?.error || "Could not verify, try again later" };
+        }
+
+        return { verified: data.data };
+    } catch (error) {
+        console.error(error);
+        return { error: "Could not verify, try again later" };
     }
 }
