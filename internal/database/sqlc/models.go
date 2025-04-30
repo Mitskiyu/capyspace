@@ -19,10 +19,10 @@ type User struct {
 	EmailVerified time.Time
 }
 
-type VerificationToken struct {
+type VerificationCode struct {
 	ID        uuid.UUID
 	Email     string
-	Token     string
+	Code      string
 	Used      bool
 	ExpiresAt time.Time
 }

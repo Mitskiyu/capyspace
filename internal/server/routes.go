@@ -65,7 +65,7 @@ func (s *Server) sendVerificationHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	var requestBody struct {
-		Email string `json:"email"`
+		Email string
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
@@ -82,7 +82,7 @@ func (s *Server) sendVerificationHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	ctx := r.Context()
-	token, err := auth.CreateVerificationToken(ctx, s.dbQueries, emailAddr)
+	code, err := auth.CreateVerificationCode(ctx, s.dbQueries, emailAddr)
 	if err != nil {
 		errorResponse(w, http.StatusInternalServerError, "Could not send email, try again later", err)
 		return
@@ -92,8 +92,8 @@ func (s *Server) sendVerificationHandler(w http.ResponseWriter, r *http.Request)
 		To:       []string{emailAddr},
 		From:     "noreply@capyspace.com",
 		Subject:  "Capyspace Verification Code",
-		HTMLBody: fmt.Sprintf("<h1>Code: %s</h1>", token),
-		RawBody:  fmt.Sprintf("Code: %s", token),
+		HTMLBody: fmt.Sprintf("<h1>Code: %s</h1>", code),
+		RawBody:  fmt.Sprintf("Code: %s", code),
 	}
 
 	if err := email.Send(ctx, s.emailClient, emailConf); err != nil {
@@ -104,7 +104,7 @@ func (s *Server) sendVerificationHandler(w http.ResponseWriter, r *http.Request)
 	successResponse(w, http.StatusOK, true)
 }
 
-func (s *Server) checkVerificationHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Server) checkVerficationCodeHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		errorResponse(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
 		return
@@ -112,7 +112,7 @@ func (s *Server) checkVerificationHandler(w http.ResponseWriter, r *http.Request
 
 	var requestBody struct {
 		Email string
-		Token string
+		Code  string
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
@@ -123,7 +123,7 @@ func (s *Server) checkVerificationHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	email := requestBody.Email
-	token := requestBody.Token
+	code := requestBody.Code
 	ctx := r.Context()
 
 	if err := validate.Email(email); err != nil {
@@ -131,11 +131,11 @@ func (s *Server) checkVerificationHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := validate.VerificationToken(token); err != nil {
-		errorResponse(w, http.StatusBadRequest, "Code is invalid", err)
+	if err := validate.VerificationCode(code); err != nil {
+		errorResponse(w, http.StatusBadRequest, "Invalid or expired code", err)
 	}
 
-	verified, err := auth.CheckVerificationToken(ctx, s.dbQueries, email, token)
+	verified, err := auth.CheckVerificationCode(ctx, s.dbQueries, email, code)
 	if err != nil {
 		errorResponse(w, http.StatusInternalServerError, "Could not verify, try again later", err)
 		return

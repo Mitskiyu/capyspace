@@ -13,16 +13,16 @@ export function validateEmail(email: string): boolean {
     return true;
 }
 
-export function validateVT(token: string): boolean {
-    if (!token) {
+export function validateVerificationCode(code: string): boolean {
+    if (!code) {
         return false;
     }
 
-    if (token.length !== 6) {
+    if (code.length !== 6) {
         return false;
     }
 
-    if (!/^\d{6}$/.test(token)) {
+    if (!/^\d{6}$/.test(code)) {
         return false;
     }
 
