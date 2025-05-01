@@ -3,6 +3,7 @@
     import {
         validateEmail,
         validateVerificationCode,
+        validatePassword,
         checkEmail,
         sendVerificationCode,
         checkVerificationCode,
@@ -18,18 +19,26 @@
     let { isModal } = $props();
     let authState = $state<AuthState>("initial");
 
+    // verification code message
+    let message = $state<string>("Code will be sent to your inbox");
+
+    // form states
+    let email = $state<string>("");
+    let password = $state<string>("");
+    let confirmPassword = $state<string>("");
+    let verificationCode = $state<string>("");
+
+    let validEmail = $derived<boolean>(validateEmail(email));
+    let validPassword = $derived<boolean>(validatePassword(password));
+    let validVerificationCode = $derived<boolean>(validateVerificationCode(verificationCode));
+
     // user facing error
     let err = $state<string>("");
-
-    let message = $state<string>("");
-
-    // states for submit button
-    let email = $state<string>("");
-    let validEmail = $derived<boolean>(validateEmail(email));
-    let verificationCode = $state<string>("");
-    let validVerificationCode = $derived<boolean>(validateVerificationCode(verificationCode));
-    let password = $state<string>("");
-
+    let passwordErr = $derived<string>(
+        password.length > 0 && !validPassword
+            ? "Password must be at least eight characters long"
+            : ""
+    );
     const handleSubmit = async (e: SubmitEvent): Promise<void> => {
         e.preventDefault();
 
@@ -151,9 +160,14 @@
             <!-- form -->
             <form onsubmit={handleSubmit} class="flex w-full flex-col items-center gap-y-2.5">
                 <!-- error message -->
-                {#if err}
-                    <span class="text-error -mt-4 text-sm">{err}</span>
-                {/if}
+                <div class="flex w-11/12 items-center justify-center text-center">
+                    {#if err}
+                        <span class="text-error -mt-4 text-sm">{err}</span>
+                    {/if}
+                    {#if passwordErr && !validPassword}
+                        <span class="text-error -mt-4 text-sm">{passwordErr}</span>
+                    {/if}
+                </div>
 
                 <input
                     type="text"
@@ -180,7 +194,7 @@
                         <span class="text-subtext mt-1 text-sm">{message}</span>
                     </div>
                 {:else if authState === "signup"}
-                    <SignUp />
+                    <SignUp bind:password bind:confirmPassword validPassword />
                 {:else if authState === "signin"}
                     <SignIn />
                 {/if}
@@ -188,11 +202,14 @@
                 <!-- submit button -->
                 <button
                     type="submit"
-                    disabled={!validEmail}
+                    disabled={(authState === "initial" && !validEmail) ||
+                        (authState === "verify" && !validVerificationCode) ||
+                        (authState === "signup" && !validPassword)}
                     class={[
                         "bg-background3 hover:bg-overlay1 focus:outline-overlay1 mt-2 h-9 w-11/12 rounded-lg focus:outline-1",
                         (authState === "initial" && !validEmail) ||
-                        (authState === "verify" && !validVerificationCode)
+                        (authState === "verify" && !validVerificationCode) ||
+                        (authState === "signup" && !validPassword)
                             ? "cursor-not-allowed opacity-60"
                             : "hover:cursor-pointer",
                     ]}

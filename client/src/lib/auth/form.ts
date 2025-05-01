@@ -28,3 +28,19 @@ export function validateVerificationCode(code: string): boolean {
 
     return true;
 }
+
+export function validatePassword(password: string): boolean {
+    if (!password) {
+        return false;
+    }
+
+    if (password.length < 8 || password.length > 255) {
+        return false;
+    }
+
+    if (password.trim() === "") {
+        return false;
+    }
+
+    return true;
+}

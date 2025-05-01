@@ -1,8 +1,8 @@
 <script lang="ts">
     import { Eye, EyeOff } from "@lucide/svelte";
 
-    let password = $state<string>("");
-    let confirmPassword = $state<string>("");
+    let { password = $bindable(), confirmPassword = $bindable() } = $props();
+
     let showPassword = $state<boolean>(false);
     let showConfirmPassword = $state<boolean>(false);
 </script>
