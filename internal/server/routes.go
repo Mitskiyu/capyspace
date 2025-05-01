@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/Mitskiyu/capyspace/internal/auth"
@@ -147,5 +148,45 @@ func (s *Server) checkVerficationCodeHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	successResponse(w, http.StatusOK, true)
+}
+
+func (s *Server) createUserHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		errorResponse(w, http.StatusMethodNotAllowed, "Method not allowed", nil)
+	}
+
+	var requestBody struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	defer r.Body.Close()
+	if err != nil {
+		errorResponse(w, http.StatusBadRequest, "Invalid request format", fmt.Errorf("body decode error: %v", err))
+		return
+	}
+
+	email := requestBody.Email
+	pw := requestBody.Password
+
+	if err := validate.Email(email); err != nil {
+		errorResponse(w, http.StatusBadRequest, "Email is invalid", err)
+		return
+	}
+
+	if err := validate.Password(pw); err != nil {
+		errorResponse(w, http.StatusBadRequest, "Password is invalid", err)
+		return
+	}
+
+	ctx := r.Context()
+	id, err := auth.CreateUser(ctx, s.dbQueries, email, pw)
+	if err != nil {
+		errorResponse(w, http.StatusBadRequest, "Could not sign up, try again later", err)
+	}
+
+	log.Println(id)
 	successResponse(w, http.StatusOK, true)
 }
