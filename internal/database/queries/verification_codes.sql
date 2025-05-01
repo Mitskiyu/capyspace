@@ -15,6 +15,12 @@ WHERE
     AND expires_at > NOW()
 LIMIT 1;
 
+-- name: GetUsedVerficationCode :one
+SELECT 1
+FROM verification_codes
+WHERE email = $1 AND used = TRUE
+LIMIT 1;
+
 -- name: SetUsedVerificationCode :exec
 UPDATE verification_codes
 SET used = TRUE
