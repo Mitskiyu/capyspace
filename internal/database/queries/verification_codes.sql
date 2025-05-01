@@ -6,12 +6,7 @@ INSERT INTO verification_codes (
 );
 
 -- name: GetValidVerificationCode :one
-SELECT
-    id,
-    email,
-    code,
-    used,
-    expires_at
+SELECT id
 FROM verification_codes
 WHERE
     email = $1

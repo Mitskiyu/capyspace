@@ -40,12 +40,7 @@ func (q *Queries) CreateVerificationCode(ctx context.Context, arg CreateVerifica
 }
 
 const getValidVerificationCode = `-- name: GetValidVerificationCode :one
-SELECT
-    id,
-    email,
-    code,
-    used,
-    expires_at
+SELECT id
 FROM verification_codes
 WHERE
     email = $1
@@ -60,17 +55,11 @@ type GetValidVerificationCodeParams struct {
 	Code  string
 }
 
-func (q *Queries) GetValidVerificationCode(ctx context.Context, arg GetValidVerificationCodeParams) (VerificationCode, error) {
+func (q *Queries) GetValidVerificationCode(ctx context.Context, arg GetValidVerificationCodeParams) (uuid.UUID, error) {
 	row := q.db.QueryRowContext(ctx, getValidVerificationCode, arg.Email, arg.Code)
-	var i VerificationCode
-	err := row.Scan(
-		&i.ID,
-		&i.Email,
-		&i.Code,
-		&i.Used,
-		&i.ExpiresAt,
-	)
-	return i, err
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const setUsedVerificationCode = `-- name: SetUsedVerificationCode :exec

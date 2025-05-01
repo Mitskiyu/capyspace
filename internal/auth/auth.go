@@ -47,7 +47,7 @@ func CheckVerificationCode(ctx context.Context, dbQueries *dbgen.Queries, email 
 		Code:  code,
 	}
 
-	vc, err := dbQueries.GetValidVerificationCode(ctx, codeParams)
+	id, err := dbQueries.GetValidVerificationCode(ctx, codeParams)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
@@ -56,7 +56,7 @@ func CheckVerificationCode(ctx context.Context, dbQueries *dbgen.Queries, email 
 	}
 
 	// set the code's <used> to true
-	if err := dbQueries.SetUsedVerificationCode(ctx, vc.ID); err != nil {
+	if err := dbQueries.SetUsedVerificationCode(ctx, id); err != nil {
 		return false, fmt.Errorf("could not set used code: %v", err)
 	}
 
