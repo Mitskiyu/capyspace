@@ -4,7 +4,7 @@ export async function checkEmail(email: string): Promise<{ exists?: boolean; err
     const url = PUBLIC_API_URL;
 
     try {
-        const res = await fetch(`${url}/api/auth/check-email`, {
+        const res = await fetch(`${url}/auth/check-email`, {
             method: "POST",
             body: JSON.stringify({ email }),
             headers: { "Content-Type": "application/json" },
@@ -28,7 +28,7 @@ export async function sendVerificationCode(
     const url = PUBLIC_API_URL;
 
     try {
-        const res = await fetch(`${url}/api/auth/send-verification`, {
+        const res = await fetch(`${url}/auth/send-verification`, {
             method: "POST",
             body: JSON.stringify({ email }),
             headers: { "Content-Type": "application/json" },
@@ -53,7 +53,7 @@ export async function checkVerificationCode(
     const url = PUBLIC_API_URL;
 
     try {
-        const res = await fetch(`${url}/api/auth/check-verification`, {
+        const res = await fetch(`${url}/auth/check-verification`, {
             method: "POST",
             body: JSON.stringify({ email, code }),
             headers: { "Content-Type": "application/json" },
