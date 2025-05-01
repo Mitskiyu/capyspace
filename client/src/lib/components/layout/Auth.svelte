@@ -6,6 +6,7 @@
         checkEmail,
         sendVerificationCode,
         checkVerificationCode,
+        createUser,
     } from "$lib/auth";
     import SignIn from "../functional/SignIn.svelte";
     import SignUp from "../functional/SignUp.svelte";
@@ -25,8 +26,9 @@
     // states for submit button
     let email = $state<string>("");
     let validEmail = $derived<boolean>(validateEmail(email));
-    let vc = $state<string>("");
-    let validVerificationCode = $derived<boolean>(validateVerificationCode(vc));
+    let verificationCode = $state<string>("");
+    let validVerificationCode = $derived<boolean>(validateVerificationCode(verificationCode));
+    let password = $state<string>("");
 
     const handleSubmit = async (e: SubmitEvent): Promise<void> => {
         e.preventDefault();
@@ -52,8 +54,8 @@
 
                 // go to verify
                 if (success) {
-                    authState = "verify";
                     message = "We sent a code to your inbox";
+                    authState = "verify";
                 }
             } else {
                 // go to signin
@@ -65,7 +67,7 @@
 
         if (authState === "verify") {
             // check if code correct
-            const { verified, error } = await checkVerificationCode(email, vc);
+            const { verified, error } = await checkVerificationCode(email, verificationCode);
 
             if (error) {
                 err = error;
@@ -80,6 +82,21 @@
             }
 
             return;
+        }
+
+        if (authState === "signup") {
+            const { success, error } = await createUser(email, password);
+
+            if (error) {
+                err = error;
+                return;
+            }
+
+            if (!success) {
+                err = "Could not sign up, try again later";
+            } else {
+                // go to dashboard?
+            }
         }
     };
 </script>
@@ -156,7 +173,7 @@
                             type="text"
                             inputmode="numeric"
                             placeholder="Enter verification code"
-                            bind:value={vc}
+                            bind:value={verificationCode}
                             oninput={() => (err = "")}
                             class="focus:outline-overlay2 outline-overlay3/40 bg-background3/40 h-9 w-11/12 rounded-lg px-2 py-1 outline-1"
                         />

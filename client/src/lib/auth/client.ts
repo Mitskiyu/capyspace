@@ -70,3 +70,28 @@ export async function checkVerificationCode(
         return { error: "Could not verify, try again later" };
     }
 }
+
+export async function createUser(
+    email: string,
+    password: string
+): Promise<{ success?: boolean; error?: string }> {
+    const url = PUBLIC_API_URL;
+
+    try {
+        const res = await fetch(`${url}/auth/create-user`, {
+            method: "POST",
+            body: JSON.stringify({ email, password }),
+            headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+            return { error: data?.error || "Could not sign up, try again later" };
+        }
+
+        return { success: data.data };
+    } catch (error) {
+        console.error(error);
+        return { error: "Could not sign up, try again later" };
+    }
+}
