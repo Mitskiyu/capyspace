@@ -3,6 +3,7 @@ package validate
 import (
 	"fmt"
 	"net/mail"
+	"strings"
 )
 
 func Email(email string) error {
@@ -31,6 +32,22 @@ func VerificationCode(code string) error {
 		if c < '0' || c > '9' {
 			return fmt.Errorf("code validation error: must be digits")
 		}
+	}
+
+	return nil
+}
+
+func Password(pw string) error {
+	if pw == "" {
+		return fmt.Errorf("pw validation error: empty")
+	}
+
+	if len(pw) > 255 || len(pw) < 8 {
+		return fmt.Errorf("pw validation error: length")
+	}
+
+	if strings.TrimSpace(pw) == "" {
+		return fmt.Errorf("pw validation error: whitespace")
 	}
 
 	return nil
