@@ -11,6 +11,14 @@ import (
 	"github.com/google/uuid"
 )
 
+type Session struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Revoked   bool
+	ExpiresAt time.Time
+	CreatedAt time.Time
+}
+
 type User struct {
 	ID            uuid.UUID
 	Name          sql.NullString

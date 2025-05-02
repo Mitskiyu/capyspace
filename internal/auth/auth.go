@@ -105,3 +105,20 @@ func CreateUser(ctx context.Context, dbQueries *dbgen.Queries, email string, pw 
 
 	return id, nil
 }
+
+func CreateSession(ctx context.Context, dbQueries *dbgen.Queries, userID uuid.UUID) (uuid.UUID, error) {
+	sessionParams := dbgen.CreateSessionParams{
+		ID:        uuid.New(),
+		UserID:    userID,
+		Revoked:   false,
+		ExpiresAt: time.Now().Add(30 * 24 * time.Hour),
+		CreatedAt: time.Now(),
+	}
+
+	id, err := dbQueries.CreateSession(ctx, sessionParams)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("could not create session: %v", err)
+	}
+
+	return id, nil
+}
