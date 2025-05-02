@@ -34,11 +34,7 @@
 
     // user facing error
     let err = $state<string>("");
-    let passwordErr = $derived<string>(
-        password.length > 0 && !validPassword
-            ? "Password must be at least eight characters long"
-            : ""
-    );
+
     const handleSubmit = async (e: SubmitEvent): Promise<void> => {
         e.preventDefault();
 
@@ -164,9 +160,6 @@
                     {#if err}
                         <span class="text-error -mt-4 text-sm">{err}</span>
                     {/if}
-                    {#if passwordErr && !validPassword}
-                        <span class="text-error -mt-4 text-sm">{passwordErr}</span>
-                    {/if}
                 </div>
 
                 <input
@@ -194,7 +187,7 @@
                         <span class="text-subtext mt-1 text-sm">{message}</span>
                     </div>
                 {:else if authState === "signup"}
-                    <SignUp bind:password bind:confirmPassword validPassword />
+                    <SignUp bind:password bind:confirmPassword bind:err />
                 {:else if authState === "signin"}
                     <SignIn />
                 {/if}
@@ -209,7 +202,7 @@
                         "bg-background3 hover:bg-overlay1 focus:outline-overlay1 mt-2 h-9 w-11/12 rounded-lg focus:outline-1",
                         (authState === "initial" && !validEmail) ||
                         (authState === "verify" && !validVerificationCode) ||
-                        (authState === "signup" && !validPassword)
+                        (authState === "signup" && !validPassword && password == confirmPassword)
                             ? "cursor-not-allowed opacity-60"
                             : "hover:cursor-pointer",
                     ]}
@@ -218,9 +211,9 @@
                         {#if authState === "initial"}
                             Continue with email
                         {:else if authState === "verify"}
-                            Verify code
+                            Continue
                         {:else if authState === "signup"}
-                            Sign up
+                            Create account
                         {:else}
                             Sign in
                         {/if}
