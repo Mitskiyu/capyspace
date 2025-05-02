@@ -5,3 +5,7 @@ INSERT INTO sessions (
     $1, $2, $3, $4, $5
 )
 RETURNING id;
+
+-- name: GetSessionExpiration :one
+SELECT expires_at FROM sessions
+WHERE id = $1;

@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"database/sql"
@@ -10,9 +11,20 @@ import (
 	"time"
 
 	dbgen "github.com/Mitskiyu/capyspace/internal/database/sqlc"
+
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/argon2"
 )
+
+type SessionClaims struct {
+	SessionID    uuid.UUID `json:"session_id"`
+	UserID       uuid.UUID `json:"user_id"`
+	Name         string    `json:"name"`
+	Email        string    `json:"email"`
+	RevalidateAt int64     `json:"revalidate_at"`
+	jwt.RegisteredClaims
+}
 
 func GenerateVerificationCode() (string, error) {
 	n, err := rand.Int(rand.Reader, big.NewInt(1000000))
@@ -123,4 +135,56 @@ func CreateSession(ctx context.Context, dbQueries *dbgen.Queries, userID uuid.UU
 	}
 
 	return id, nil
+}
+
+func IssueSession(ctx context.Context, dbQueries *dbgen.Queries, sessionID uuid.UUID, userID uuid.UUID, name string, email string, secretKey []byte) (string, error) {
+	expiresAt, err := dbQueries.GetSessionExpiration(ctx, sessionID)
+	if err != nil {
+		return "", fmt.Errorf("could not get session expiration: %v", err)
+	}
+
+	revalidateAt := time.Now().Add(1 * time.Minute).Unix()
+
+	sessionClaims := SessionClaims{
+		SessionID:    sessionID,
+		UserID:       userID,
+		Name:         name,
+		Email:        email,
+		RevalidateAt: revalidateAt,
+		RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, sessionClaims)
+	signedToken, err := token.SignedString(secretKey)
+	if err != nil {
+		return "", fmt.Errorf("could not create signed token: %v", err)
+	}
+
+	return signedToken, nil
+}
+
+func CheckPassword(password, hashStr, saltStr string) (bool, error) {
+	salt, err := base64.RawStdEncoding.DecodeString(saltStr)
+	if err != nil {
+		return false, fmt.Errorf("could not decode salt string: %v", err)
+	}
+
+	hash, err := base64.RawStdEncoding.DecodeString(hashStr)
+	if err != nil {
+		return false, fmt.Errorf("could not decode hash string: %v", err)
+	}
+
+	var (
+		memory  uint32 = 64 * 1024
+		iter    uint32 = 3
+		threads uint8  = 2
+		keyLen  uint32 = 32
+	)
+
+	test := argon2.IDKey([]byte(password), salt, iter, memory, threads, keyLen)
+
+	return bytes.Equal(hash, test), nil
 }

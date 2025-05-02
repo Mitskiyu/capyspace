@@ -41,3 +41,15 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (u
 	err := row.Scan(&id)
 	return id, err
 }
+
+const getSessionExpiration = `-- name: GetSessionExpiration :one
+SELECT expires_at FROM sessions
+WHERE id = $1
+`
+
+func (q *Queries) GetSessionExpiration(ctx context.Context, id uuid.UUID) (time.Time, error) {
+	row := q.db.QueryRowContext(ctx, getSessionExpiration, id)
+	var expires_at time.Time
+	err := row.Scan(&expires_at)
+	return expires_at, err
+}
