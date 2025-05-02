@@ -15,23 +15,24 @@ type Server struct {
 	dbConn      *sql.DB
 	dbQueries   *dbgen.Queries
 	emailClient *sesv2.Client
+	secretKey   []byte
 }
 
-func New(dbConn *sql.DB, dbQueries *dbgen.Queries, emailClient *sesv2.Client) *http.Server {
+func New(dbConn *sql.DB, dbQueries *dbgen.Queries, emailClient *sesv2.Client, secretKey []byte, allowedOrigins string) *http.Server {
 	s := &Server{
 		dbConn:      dbConn,
 		dbQueries:   dbQueries,
 		emailClient: emailClient,
+		secretKey:   secretKey,
 	}
 
-	allowedOrigins := os.Getenv("CORS_ORIGINS")
 	corsMiddleware, err := cors.NewMiddleware(cors.Config{
 		Origins:        []string{allowedOrigins},
 		Methods:        []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
 		RequestHeaders: []string{"Authorization", "Content-Type"},
 	})
 	if err != nil {
-		log.Fatalf("cors error: %v", err)
+		log.Fatalf("CORS error: %v", err)
 	}
 
 	mux := http.NewServeMux()
