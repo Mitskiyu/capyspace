@@ -39,8 +39,9 @@ func New(dbConn *sql.DB, dbQueries *dbgen.Queries, emailClient *sesv2.Client, se
 	mux.HandleFunc("/health", s.healthHandler)
 	mux.HandleFunc("/auth/check-email", s.checkEmailHandler)
 	mux.HandleFunc("/auth/send-verification", s.sendVerificationHandler)
-	mux.HandleFunc("/auth/check-verification", s.checkVerficationCodeHandler)
+	mux.HandleFunc("/auth/check-verification", s.checkVerificationCodeHandler)
 	mux.HandleFunc("/auth/create-user", s.createUserHandler)
+	mux.HandleFunc("/auth/sign-in", s.signInHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
