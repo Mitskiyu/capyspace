@@ -15,9 +15,9 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-    id, name, email, password, email_verified
+    id, name, email, password, salt, email_verified
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5, $6
 )
 RETURNING id
 `
@@ -27,6 +27,7 @@ type CreateUserParams struct {
 	Name          sql.NullString
 	Email         string
 	Password      sql.NullString
+	Salt          sql.NullString
 	EmailVerified time.Time
 }
 
@@ -36,6 +37,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UU
 		arg.Name,
 		arg.Email,
 		arg.Password,
+		arg.Salt,
 		arg.EmailVerified,
 	)
 	var id uuid.UUID
@@ -44,7 +46,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UU
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, email, password, email_verified FROM users
+SELECT id, name, email, password, email_verified, salt FROM users
 WHERE email = $1
 LIMIT 1
 `
@@ -58,6 +60,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Email,
 		&i.Password,
 		&i.EmailVerified,
+		&i.Salt,
 	)
 	return i, err
 }

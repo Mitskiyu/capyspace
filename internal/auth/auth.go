@@ -89,12 +89,14 @@ func CreateUser(ctx context.Context, dbQueries *dbgen.Queries, email string, pw 
 
 	hash := argon2.IDKey([]byte(pw), salt, iter, memory, threads, keyLen)
 	hashStr := base64.RawStdEncoding.EncodeToString(hash)
+	saltStr := base64.RawStdEncoding.EncodeToString(salt)
 
 	userParams := dbgen.CreateUserParams{
 		ID:            uuid.New(),
 		Name:          sql.NullString{String: "", Valid: false},
 		Email:         email,
 		Password:      sql.NullString{String: hashStr, Valid: true},
+		Salt:          sql.NullString{String: saltStr, Valid: true},
 		EmailVerified: time.Now(),
 	}
 

@@ -25,6 +25,7 @@ type User struct {
 	Email         string
 	Password      sql.NullString
 	EmailVerified time.Time
+	Salt          sql.NullString
 }
 
 type VerificationCode struct {
