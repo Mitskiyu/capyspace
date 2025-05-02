@@ -39,15 +39,15 @@ func (q *Queries) CreateVerificationCode(ctx context.Context, arg CreateVerifica
 	return err
 }
 
-const getUsedVerficationCode = `-- name: GetUsedVerficationCode :one
+const getUsedVerificationCode = `-- name: GetUsedVerificationCode :one
 SELECT 1
 FROM verification_codes
 WHERE email = $1 AND used = TRUE
 LIMIT 1
 `
 
-func (q *Queries) GetUsedVerficationCode(ctx context.Context, email string) (int32, error) {
-	row := q.db.QueryRowContext(ctx, getUsedVerficationCode, email)
+func (q *Queries) GetUsedVerificationCode(ctx context.Context, email string) (int32, error) {
+	row := q.db.QueryRowContext(ctx, getUsedVerificationCode, email)
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err

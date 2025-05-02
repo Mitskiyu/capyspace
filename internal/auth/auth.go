@@ -66,7 +66,7 @@ func CheckVerificationCode(ctx context.Context, dbQueries *dbgen.Queries, email 
 }
 
 func CreateUser(ctx context.Context, dbQueries *dbgen.Queries, email string, pw string) (uuid.UUID, error) {
-	_, err := dbQueries.GetUsedVerficationCode(ctx, email)
+	_, err := dbQueries.GetUsedVerificationCode(ctx, email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return uuid.Nil, fmt.Errorf("could not create user: email not verified")

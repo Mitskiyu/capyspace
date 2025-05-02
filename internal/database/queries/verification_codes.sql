@@ -15,7 +15,7 @@ WHERE
     AND expires_at > NOW()
 LIMIT 1;
 
--- name: GetUsedVerficationCode :one
+-- name: GetUsedVerificationCode :one
 SELECT 1
 FROM verification_codes
 WHERE email = $1 AND used = TRUE
