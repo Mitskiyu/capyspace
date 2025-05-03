@@ -7,6 +7,23 @@ INSERT INTO users (
 RETURNING id;
 
 -- name: GetUserByEmail :one
-SELECT * FROM users
-WHERE email = $1
-LIMIT 1;
+SELECT
+    id,
+    name,
+    email,
+    password,
+    salt,
+    email_verified
+FROM users
+WHERE email = $1;
+
+-- name: GetUser :one
+SELECT
+    id,
+    name,
+    email,
+    password,
+    salt,
+    email_verified
+FROM users
+WHERE id = $1;

@@ -45,22 +45,72 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UU
 	return id, err
 }
 
-const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, email, password, email_verified, salt FROM users
-WHERE email = $1
-LIMIT 1
+const getUser = `-- name: GetUser :one
+SELECT
+    id,
+    name,
+    email,
+    password,
+    salt,
+    email_verified
+FROM users
+WHERE id = $1
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
-	var i User
+type GetUserRow struct {
+	ID            uuid.UUID
+	Name          sql.NullString
+	Email         string
+	Password      sql.NullString
+	Salt          sql.NullString
+	EmailVerified time.Time
+}
+
+func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (GetUserRow, error) {
+	row := q.db.QueryRowContext(ctx, getUser, id)
+	var i GetUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Email,
 		&i.Password,
-		&i.EmailVerified,
 		&i.Salt,
+		&i.EmailVerified,
+	)
+	return i, err
+}
+
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT
+    id,
+    name,
+    email,
+    password,
+    salt,
+    email_verified
+FROM users
+WHERE email = $1
+`
+
+type GetUserByEmailRow struct {
+	ID            uuid.UUID
+	Name          sql.NullString
+	Email         string
+	Password      sql.NullString
+	Salt          sql.NullString
+	EmailVerified time.Time
+}
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	var i GetUserByEmailRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Password,
+		&i.Salt,
+		&i.EmailVerified,
 	)
 	return i, err
 }

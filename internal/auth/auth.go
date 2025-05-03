@@ -188,3 +188,59 @@ func CheckPassword(password, hashStr, saltStr string) (bool, error) {
 
 	return bytes.Equal(hash, test), nil
 }
+
+func RevalidateSession(ctx context.Context, dbQueries *dbgen.Queries, secretKey []byte, tokenString string) (string, *SessionClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &SessionClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return secretKey, nil
+	})
+	if err != nil || !token.Valid {
+		return "", nil, fmt.Errorf("could not revalidate session: token is invalid")
+	}
+
+	claims, ok := token.Claims.(*SessionClaims)
+	if !ok {
+		return "", nil, fmt.Errorf("could not revalidate session: invalid claims")
+	}
+
+	if time.Now().Unix() < claims.RevalidateAt {
+		return tokenString, claims, nil
+	}
+
+	session, err := dbQueries.GetSession(ctx, claims.SessionID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", nil, fmt.Errorf("could not revalidate session: session does not exist")
+		}
+		return "", nil, fmt.Errorf("could not revalidate session: %v", err)
+	}
+	if session.Revoked || session.ExpiresAt.Before(time.Now()) {
+		return "", nil, fmt.Errorf("could not revalidate session: session expired or revoked")
+	}
+
+	user, err := dbQueries.GetUser(ctx, claims.UserID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", nil, fmt.Errorf("could not revalidate session: user does not exist")
+		}
+		return "", nil, fmt.Errorf("could not revalidate session: %v", err)
+	}
+
+	newToken, err := IssueSession(ctx, dbQueries, session.ID, user.ID, user.Name.String, user.Email, secretKey)
+	if err != nil {
+		return "", nil, fmt.Errorf("could not revalidate session: could not issue new token: %v", err)
+	}
+
+	newParsedToken, err := jwt.ParseWithClaims(newToken, &SessionClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return secretKey, nil
+	})
+	if err != nil || !newParsedToken.Valid {
+		return "", nil, fmt.Errorf("could not revalidate session: could not parse new token: %v", err)
+	}
+
+	newClaims, ok := newParsedToken.Claims.(*SessionClaims)
+	if !ok {
+		return "", nil, fmt.Errorf("could not revalidate session: new claims are invalid")
+	}
+
+	return newToken, newClaims, nil
+}
