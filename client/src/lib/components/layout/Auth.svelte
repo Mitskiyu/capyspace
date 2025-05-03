@@ -8,6 +8,7 @@
         sendVerificationCode,
         checkVerificationCode,
         createUser,
+        signIn,
     } from "$lib/auth";
     import SignIn from "../functional/SignIn.svelte";
     import SignUp from "../functional/SignUp.svelte";
@@ -41,7 +42,6 @@
         if (authState === "initial") {
             // check if email exists
             const { exists, error } = await checkEmail(email);
-
             if (error) {
                 err = error;
                 return;
@@ -50,7 +50,6 @@
             if (!exists) {
                 // try sending code
                 const { success, error } = await sendVerificationCode(email);
-
                 // if error, stay on initial state
                 if (error) {
                     err = error;
@@ -73,7 +72,6 @@
         if (authState === "verify") {
             // check if code correct
             const { verified, error } = await checkVerificationCode(email, verificationCode);
-
             if (error) {
                 err = error;
                 return;
@@ -91,7 +89,6 @@
 
         if (authState === "signup") {
             const { success, error } = await createUser(email, password);
-
             if (error) {
                 err = error;
                 return;
@@ -100,7 +97,21 @@
             if (!success) {
                 err = "Could not sign up, try again later";
             } else {
-                // go to dashboard?
+                // go to onboarding/name
+            }
+        }
+
+        if (authState === "signin") {
+            const { success, error } = await signIn(email, password);
+            if (error) {
+                err = error;
+                return;
+            }
+
+            if (!success) {
+                err = "Could not sign in, try again later";
+            } else {
+                // go to dashboard
             }
         }
     };
@@ -189,7 +200,7 @@
                 {:else if authState === "signup"}
                     <SignUp bind:password bind:confirmPassword bind:err />
                 {:else if authState === "signin"}
-                    <SignIn />
+                    <SignIn bind:password />
                 {/if}
 
                 <!-- submit button -->

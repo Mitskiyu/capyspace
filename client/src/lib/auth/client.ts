@@ -95,3 +95,29 @@ export async function createUser(
         return { error: "Could not sign up, try again later" };
     }
 }
+
+export async function signIn(
+    email: string,
+    password: string
+): Promise<{ success?: boolean; error?: string }> {
+    const url = PUBLIC_API_URL;
+
+    try {
+        const res = await fetch(`${url}/auth/sign-in`, {
+            method: "POST",
+            body: JSON.stringify({ email, password }),
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+            return { error: data?.error || "Could not sign in, try again later" };
+        }
+
+        return { success: data.data };
+    } catch (error) {
+        console.error(error);
+        return { error: "Could not sign in, try again later" };
+    }
+}
