@@ -276,5 +276,15 @@ func (s *Server) signInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	successResponse(w, http.StatusOK, token)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session",
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   60 * 60 * 24 * 30,
+	})
+
+	successResponse(w, http.StatusOK, true)
 }
