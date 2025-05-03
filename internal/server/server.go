@@ -30,6 +30,7 @@ func New(dbConn *sql.DB, dbQueries *dbgen.Queries, emailClient *sesv2.Client, se
 		Origins:        []string{allowedOrigins},
 		Methods:        []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
 		RequestHeaders: []string{"Authorization", "Content-Type"},
+		Credentialed:   true,
 	})
 	if err != nil {
 		log.Fatalf("CORS error: %v", err)
