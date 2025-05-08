@@ -32,6 +32,6 @@ type VerificationCode struct {
 	ID        uuid.UUID
 	Email     string
 	Code      string
-	Used      bool
+	Used      sql.NullTime
 	ExpiresAt time.Time
 }

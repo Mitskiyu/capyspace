@@ -73,14 +73,15 @@ export async function checkVerificationCode(
 
 export async function createUser(
     email: string,
-    password: string
+    password: string,
+    code: string
 ): Promise<{ success?: boolean; error?: string }> {
     const url = PUBLIC_API_URL;
 
     try {
         const res = await fetch(`${url}/auth/create-user`, {
             method: "POST",
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email, password, code }),
             headers: { "Content-Type": "application/json" },
         });
 

@@ -1,56 +1,38 @@
 package server
 
 import (
-	"database/sql"
-	"log"
 	"net/http"
-	"os"
 
+	"github.com/Mitskiyu/capyspace/internal/auth"
 	dbgen "github.com/Mitskiyu/capyspace/internal/database/sqlc"
-	"github.com/aws/aws-sdk-go-v2/service/sesv2"
+	"github.com/Mitskiyu/capyspace/internal/middleware"
+
 	"github.com/jub0bs/cors"
 )
 
 type Server struct {
-	dbConn      *sql.DB
-	dbQueries   *dbgen.Queries
-	emailClient *sesv2.Client
-	secretKey   []byte
+	DBQueries      *dbgen.Queries
+	SecretKey      []byte
+	AllowedOrigins string
+	CookieDomain   string
+	CookieSecure   bool
 }
 
-func New(dbConn *sql.DB, dbQueries *dbgen.Queries, emailClient *sesv2.Client, secretKey []byte, allowedOrigins string) *http.Server {
-	s := &Server{
-		dbConn:      dbConn,
-		dbQueries:   dbQueries,
-		emailClient: emailClient,
-		secretKey:   secretKey,
-	}
-
+func New(authHandler *auth.Handler, srv Server) (http.Handler, error) {
 	corsMiddleware, err := cors.NewMiddleware(cors.Config{
-		Origins:        []string{allowedOrigins},
+		Origins:        []string{srv.AllowedOrigins},
 		Methods:        []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
 		RequestHeaders: []string{"Authorization", "Content-Type"},
 		Credentialed:   true,
 	})
 	if err != nil {
-		log.Fatalf("CORS error: %v", err)
+		return nil, err
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/health", s.healthHandler)
-	mux.HandleFunc("/auth/check-email", s.checkEmailHandler)
-	mux.HandleFunc("/auth/send-verification", s.sendVerificationHandler)
-	mux.HandleFunc("/auth/check-verification", s.checkVerificationCodeHandler)
-	mux.HandleFunc("/auth/create-user", s.createUserHandler)
-	mux.HandleFunc("/auth/sign-in", s.signInHandler)
+	authMw := middleware.NewAuthMiddleware(srv.DBQueries, srv.SecretKey, srv.CookieSecure, srv.CookieDomain)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
+	handleRoutes(mux, authHandler, authMw)
 
-	return &http.Server{
-		Addr:    ":" + port,
-		Handler: corsMiddleware.Wrap(mux),
-	}
+	return corsMiddleware.Wrap(mux), nil
 }

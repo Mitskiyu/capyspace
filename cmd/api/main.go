@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Mitskiyu/capyspace/internal/auth"
 	db "github.com/Mitskiyu/capyspace/internal/database"
 	dbgen "github.com/Mitskiyu/capyspace/internal/database/sqlc"
 	"github.com/Mitskiyu/capyspace/internal/email"
@@ -19,60 +20,107 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
+	// Pass the real os.Getenv function
+	if err := run(ctx, os.Getenv); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %s\n", err)
+		os.Exit(1)
+	}
+}
+
+func run(ctx context.Context, getenv func(string) string) error {
+	// Create context that cancels on interrupt signal
+	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Could not load env file")
+		return fmt.Errorf("could not load env file: %w", err)
 	}
 
 	var (
-		user           = os.Getenv("DB_USER")
-		password       = os.Getenv("DB_PASSWORD")
-		host           = os.Getenv("DB_HOST")
-		port           = os.Getenv("DB_PORT")
-		name           = os.Getenv("DB_NAME")
-		secretKeyStr   = os.Getenv("JWT_SECRET_KEY")
-		allowedOrigins = os.Getenv("CORS_ORIGINS")
+		env            = getenv("APP_ENV")
+		srvPort        = getenv("SERVER_PORT")
+		resendKey      = getenv("RESEND_API_KEY")
+		secretKeyStr   = getenv("JWT_SECRET_KEY")
+		allowedOrigins = getenv("CORS_ORIGINS")
+		cookieDomain   = getenv("COOKIE_DOMAIN")
+		dbUser         = getenv("DB_USER")
+		dbPassword     = getenv("DB_PASSWORD")
+		dbHost         = getenv("DB_HOST")
+		dbPort         = getenv("DB_PORT")
+		dbName         = getenv("DB_NAME")
 	)
 
+	if srvPort == "" {
+		srvPort = "8080"
+	}
+	if resendKey == "" {
+		return fmt.Errorf("RESEND_API_KEY environment variable not set")
+	}
 	if allowedOrigins == "" {
-		log.Fatalf("Could not get CORS origins")
+		return fmt.Errorf("CORS_ORIGINS environment variable not set")
 	}
-
 	if secretKeyStr == "" {
-		log.Fatalf("Could not get JWT secret key")
+		return fmt.Errorf("JWT_SECRET_KEY environment variable not set")
 	}
 
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		user, password, host, port, name)
-
-	dbConn := db.Connect(connStr)
+	// Connect to db
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUser, dbPassword, dbHost, dbPort, dbName)
+	dbConn, err := db.Connect(connStr)
+	if err != nil {
+		return fmt.Errorf("could not connect to db: %v", err)
+	}
 	defer dbConn.Close()
 
-	dbQueries := dbgen.New(dbConn)
-	emailClient := email.New()
-	secretKey := []byte(secretKeyStr)
+	dbq := dbgen.New(dbConn)
+	emailClient := email.New(resendKey)
+	sk := []byte(secretKeyStr)
 
-	srv := server.New(dbConn, dbQueries, emailClient, secretKey, allowedOrigins)
-
-	go func() {
-		log.Printf("Capyspace server starting on port %s...", srv.Addr[1:])
-
-		err := srv.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server failed: %v", err)
-		}
-	}()
-
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-
-	<-stop
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	err = srv.Shutdown(ctx)
-	if err != nil {
-		log.Fatalf("Server forced to shutdown... %v", err)
+	authHandler := &auth.Handler{
+		DBQueries:   dbq,
+		EmailClient: emailClient,
+		SecretKey:   sk,
 	}
+
+	srv := server.Server{
+		DBQueries:      dbq,
+		SecretKey:      sk,
+		AllowedOrigins: allowedOrigins,
+		CookieDomain:   cookieDomain,
+		CookieSecure:   env == "PROD",
+	}
+
+	srvHandler, err := server.New(authHandler, srv)
+	if err != nil {
+		return err
+	}
+
+	httpServer := &http.Server{
+		Addr:    ":" + srvPort,
+		Handler: srvHandler,
+	}
+
+	serverErrors := make(chan error, 1)
+	go func() {
+		log.Printf("Capyspace server starting on port %s...", srvPort)
+		serverErrors <- httpServer.ListenAndServe()
+	}()
+	select {
+	case err := <-serverErrors:
+		if err != nil && err != http.ErrServerClosed {
+			return fmt.Errorf("server failed: %w", err)
+		}
+	case <-ctx.Done():
+		log.Println("Shutdown signal received, starting graceful shutdown...")
+		shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancelShutdown()
+
+		if err := httpServer.Shutdown(shutdownCtx); err != nil {
+			return fmt.Errorf("server forced to shutdown: %w", err)
+		}
+		log.Println("Server gracefully stopped")
+	}
+
+	return nil
 }

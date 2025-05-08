@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,7 +25,7 @@ type CreateVerificationCodeParams struct {
 	ID        uuid.UUID
 	Email     string
 	Code      string
-	Used      bool
+	Used      sql.NullTime
 	ExpiresAt time.Time
 }
 
@@ -40,17 +41,22 @@ func (q *Queries) CreateVerificationCode(ctx context.Context, arg CreateVerifica
 }
 
 const getUsedVerificationCode = `-- name: GetUsedVerificationCode :one
-SELECT 1
+SELECT id
 FROM verification_codes
-WHERE email = $1 AND used = TRUE
+WHERE email = $1 AND code = $2 AND used IS NOT NULL
 LIMIT 1
 `
 
-func (q *Queries) GetUsedVerificationCode(ctx context.Context, email string) (int32, error) {
-	row := q.db.QueryRowContext(ctx, getUsedVerificationCode, email)
-	var column_1 int32
-	err := row.Scan(&column_1)
-	return column_1, err
+type GetUsedVerificationCodeParams struct {
+	Email string
+	Code  string
+}
+
+func (q *Queries) GetUsedVerificationCode(ctx context.Context, arg GetUsedVerificationCodeParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, getUsedVerificationCode, arg.Email, arg.Code)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getValidVerificationCode = `-- name: GetValidVerificationCode :one
@@ -59,7 +65,7 @@ FROM verification_codes
 WHERE
     email = $1
     AND code = $2
-    AND used = FALSE
+    AND used IS NULL
     AND expires_at > NOW()
 LIMIT 1
 `
@@ -78,7 +84,7 @@ func (q *Queries) GetValidVerificationCode(ctx context.Context, arg GetValidVeri
 
 const setUsedVerificationCode = `-- name: SetUsedVerificationCode :exec
 UPDATE verification_codes
-SET used = TRUE
+SET used = NOW()
 WHERE
     id = $1
 `

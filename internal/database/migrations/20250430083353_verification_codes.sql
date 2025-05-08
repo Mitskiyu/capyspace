@@ -2,8 +2,8 @@
 CREATE TABLE verification_codes (
     id UUID PRIMARY KEY,
     email VARCHAR(255) NOT NULL,
-    code VARCHAR(6) NOT NULL,
-    used BOOLEAN NOT NULL DEFAULT FALSE,
+    code VARCHAR(8) NOT NULL,
+    used TIMESTAMPTZ,
     expires_at TIMESTAMPTZ NOT NULL
 );
 

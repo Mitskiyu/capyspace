@@ -20,10 +20,10 @@
     let { isModal } = $props();
     let authState = $state<AuthState>("initial");
 
-    // verification code message
+    // Verification code message
     let message = $state<string>("Code will be sent to your inbox");
 
-    // form states
+    // Form states
     let email = $state<string>("");
     let password = $state<string>("");
     let confirmPassword = $state<string>("");
@@ -33,14 +33,14 @@
     let validPassword = $derived<boolean>(validatePassword(password));
     let validVerificationCode = $derived<boolean>(validateVerificationCode(verificationCode));
 
-    // user facing error
+    // User-facing error
     let err = $state<string>("");
 
     const handleSubmit = async (e: SubmitEvent): Promise<void> => {
         e.preventDefault();
 
         if (authState === "initial") {
-            // check if email exists
+            // Check if a user with this email exists
             const { exists, error } = await checkEmail(email);
             if (error) {
                 err = error;
@@ -48,29 +48,25 @@
             }
 
             if (!exists) {
-                // try sending code
-                const { success, error } = await sendVerificationCode(email);
-                // if error, stay on initial state
-                if (error) {
-                    err = error;
-                    return;
-                }
-
-                // go to verify
-                if (success) {
-                    message = "We sent a code to your inbox";
-                    authState = "verify";
-                }
+                // User does not exist, go to sign up
+                authState = "signup";
+                return;
             } else {
-                // go to signin
+                // User exists, go to sign in
                 authState = "signin";
+                return;
             }
+        }
 
+        if (authState === "signup") {
+            // Send the email and continue to verification
+            sendVerificationCode(email);
+            authState = "verify";
             return;
         }
 
         if (authState === "verify") {
-            // check if code correct
+            // Check if the code is correct
             const { verified, error } = await checkVerificationCode(email, verificationCode);
             if (error) {
                 err = error;
@@ -80,25 +76,24 @@
             if (!verified) {
                 err = "Code is invalid or expired";
             } else {
-                // go to signup
-                authState = "signup";
+                // Code is valid, create the user
+                const { success, error } = await createUser(email, password, verificationCode);
+                if (error) {
+                    err = error;
+                    return;
+                }
+
+                if (!success) {
+                    err = "Could not sign up, try again later";
+                    return;
+                } else {
+                    console.log("yay");
+                    // TODO:
+                    // Issue session & go to onboarding
+                }
             }
 
             return;
-        }
-
-        if (authState === "signup") {
-            const { success, error } = await createUser(email, password);
-            if (error) {
-                err = error;
-                return;
-            }
-
-            if (!success) {
-                err = "Could not sign up, try again later";
-            } else {
-                // go to onboarding/name
-            }
         }
 
         if (authState === "signin") {
@@ -110,8 +105,9 @@
 
             if (!success) {
                 err = "Could not sign in, try again later";
+                return;
             } else {
-                // go to dashboard
+                // Go to the space
             }
         }
     };
@@ -126,7 +122,7 @@
         { "min-h-[28em]": authState === "signin" },
     ]}
 >
-    <!-- close button if modal -->
+    <!-- Show close button if modal -->
     {#if isModal}
         <button class="flex w-full justify-end hover:cursor-pointer focus:outline-none">
             <X size="20" />
@@ -134,20 +130,20 @@
     {/if}
 
     <div class="flex w-full flex-col items-center justify-between">
-        <!-- top section -->
+        <!-- Top section -->
         <div class="focus:outline-none">
             <Icon iconSize="32" />
         </div>
         <h3 class="text-text mt-4 text-lg">Welcome to Capyspace</h3>
         <h4 class="text-subtext text-base">
             {#if authState === "initial"}Sign in or sign up{/if}
-            {#if authState === "verify"}Verify your email{/if}
+            {#if authState === "verify"}Sign up{/if}
             {#if authState === "signin"}Sign in{/if}
             {#if authState === "signup"}Sign up{/if}
         </h4>
 
         <div class="mt-6 flex h-full w-full flex-col items-center justify-between gap-y-4">
-            <!-- oauth -->
+            <!-- Google sign in -->
             <button
                 class="bg-background0 hover:bg-background0/80 flex h-9 w-11/12 items-center justify-center gap-x-2 rounded-lg p-2 hover:cursor-pointer focus:outline-1 focus:outline-none"
             >
@@ -157,19 +153,19 @@
                 <span class="font-medium">Continue with Google</span>
             </button>
 
-            <!-- line -->
+            <!-- Line -->
             <div class="my-1 flex w-11/12 items-center gap-3">
                 <div class="bg-background0/80 h-px flex-grow"></div>
                 <span class="text-subtext text-sm font-medium">OR</span>
                 <div class="bg-background0/80 h-px flex-grow"></div>
             </div>
 
-            <!-- form -->
+            <!-- Form -->
             <form onsubmit={handleSubmit} class="flex w-full flex-col items-center gap-y-2.5">
-                <!-- error message -->
-                <div class="flex w-11/12 items-center justify-center text-center">
+                <!-- Error -->
+                <div class="-mt-3 flex w-11/12 items-center justify-center text-center">
                     {#if err}
-                        <span class="text-error -mt-4 text-sm">{err}</span>
+                        <span class="text-error text-sm">{err}</span>
                     {/if}
                 </div>
 
@@ -203,17 +199,21 @@
                     <SignIn bind:password />
                 {/if}
 
-                <!-- submit button -->
+                <!-- Submit -->
                 <button
                     type="submit"
                     disabled={(authState === "initial" && !validEmail) ||
+                        (authState === "signup" &&
+                            (!validPassword || password !== confirmPassword)) ||
                         (authState === "verify" && !validVerificationCode) ||
-                        (authState === "signup" && !validPassword)}
+                        (authState === "signin" && !password)}
                     class={[
                         "bg-background3 hover:bg-overlay1 focus:outline-overlay1 mt-2 h-9 w-11/12 rounded-lg focus:outline-1",
                         (authState === "initial" && !validEmail) ||
+                        (authState === "signup" &&
+                            (!validPassword || password !== confirmPassword)) ||
                         (authState === "verify" && !validVerificationCode) ||
-                        (authState === "signup" && !validPassword && password == confirmPassword)
+                        (authState === "signin" && !password)
                             ? "cursor-not-allowed opacity-60"
                             : "hover:cursor-pointer",
                     ]}
@@ -222,21 +222,21 @@
                         {#if authState === "initial"}
                             Continue with email
                         {:else if authState === "verify"}
-                            Continue
-                        {:else if authState === "signup"}
                             Create account
+                        {:else if authState === "signup"}
+                            Continue
                         {:else}
                             Sign in
                         {/if}
                     </span>
                 </button>
 
-                <!-- resend code -->
+                <!-- Optional -->
                 {#if authState === "verify"}
                     <button
                         class="text-info/80 hover:text-info text-sm hover:cursor-pointer focus:outline-none"
                     >
-                        Resend verification code
+                        Resend in 60s
                     </button>
                 {:else if authState === "signin"}
                     <button

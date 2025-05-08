@@ -11,18 +11,18 @@ FROM verification_codes
 WHERE
     email = $1
     AND code = $2
-    AND used = FALSE
+    AND used IS NULL
     AND expires_at > NOW()
 LIMIT 1;
 
 -- name: GetUsedVerificationCode :one
-SELECT 1
+SELECT id
 FROM verification_codes
-WHERE email = $1 AND used = TRUE
+WHERE email = $1 AND code = $2 AND used IS NOT NULL
 LIMIT 1;
 
 -- name: SetUsedVerificationCode :exec
 UPDATE verification_codes
-SET used = TRUE
+SET used = NOW()
 WHERE
     id = $1;

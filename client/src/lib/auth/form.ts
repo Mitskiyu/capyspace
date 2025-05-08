@@ -18,11 +18,11 @@ export function validateVerificationCode(code: string): boolean {
         return false;
     }
 
-    if (code.length !== 6) {
+    if (code.length !== 8) {
         return false;
     }
 
-    if (!/^\d{6}$/.test(code)) {
+    if (!/^\d{8}$/.test(code)) {
         return false;
     }
 

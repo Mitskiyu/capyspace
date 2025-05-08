@@ -1,4 +1,4 @@
-package server
+package response
 
 import (
 	"encoding/json"
@@ -6,16 +6,16 @@ import (
 	"net/http"
 )
 
-type SuccessResponse struct {
+type SuccessBody struct {
 	Data any `json:"data"`
 }
 
-type ErrorResponse struct {
+type ErrorBody struct {
 	Error string `json:"error"`
 }
 
-func successResponse(w http.ResponseWriter, status int, data any) {
-	res := SuccessResponse{
+func Success(w http.ResponseWriter, status int, data any) {
+	res := SuccessBody{
 		Data: data,
 	}
 
@@ -27,8 +27,8 @@ func successResponse(w http.ResponseWriter, status int, data any) {
 	}
 }
 
-func errorResponse(w http.ResponseWriter, status int, msg string, err error) {
-	res := ErrorResponse{
+func Error(w http.ResponseWriter, status int, msg string, err error) {
+	res := ErrorBody{
 		Error: msg,
 	}
 
