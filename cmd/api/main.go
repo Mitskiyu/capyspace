@@ -10,12 +10,35 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Mitskiyu/capyspace/internal/database"
 	"github.com/Mitskiyu/capyspace/internal/router"
+	"github.com/Mitskiyu/capyspace/internal/util"
 )
 
-func run() error {
+func run(getenv func(string, string) string) error {
+	var (
+		addr     = ":" + getenv("PORT", "8080")
+		user     = getenv("DB_USER", "postgres")
+		password = getenv("DB_PASSWORD", "postgres")
+		host     = getenv("DB_HOST", "localhost")
+		port     = getenv("DB_PORT", "5432")
+		name     = getenv("DB_NAME", "capyspace")
+	)
+
+	log.Println("Connecting to postgres database...")
+	db, err := database.Connect(user, password, host, port, name)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	if err := database.Ping(db); err != nil {
+		return err
+	}
+	log.Printf("Successfully connected to %s@%s:%s/%s", user, host, port, name)
+
 	srv := http.Server{
-		Addr:    ":80",
+		Addr:    addr,
 		Handler: router.New(),
 	}
 
@@ -50,7 +73,7 @@ func run() error {
 }
 
 func main() {
-	if err := run(); err != nil {
+	if err := run(util.GetEnv); err != nil {
 		log.Fatal(err)
 	}
 }
