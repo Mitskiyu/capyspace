@@ -38,8 +38,12 @@ func run(getenv func(string, string) string) error {
 	log.Printf("Successfully connected to %s@%s:%s/%s", user, host, port, name)
 
 	srv := http.Server{
-		Addr:    addr,
-		Handler: router.New(db),
+		Addr:              addr,
+		Handler:           router.New(db),
+		ReadTimeout:       5 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		ReadHeaderTimeout: 2 * time.Second,
+		IdleTimeout:       120 * time.Second,
 	}
 
 	sig := make(chan os.Signal, 1)
