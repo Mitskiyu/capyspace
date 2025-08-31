@@ -1,0 +1,41 @@
+package auth
+
+import (
+	"context"
+	"fmt"
+	"net/mail"
+)
+
+func validEmail(email string) error {
+	if len(email) > 255 {
+		return fmt.Errorf("email cannot be longer than 255 chars")
+	}
+
+	if _, err := mail.ParseAddress(email); err != nil {
+		return fmt.Errorf("email is not a valid address")
+	}
+
+	return nil
+}
+
+func validPassword(password string) error {
+	if len(password) < 8 {
+		return fmt.Errorf("password cannot be less than 8 chars")
+	}
+
+	return nil
+}
+
+func (r RegisterReq) Valid(ctx context.Context) map[string]string {
+	problems := make(map[string]string)
+
+	if err := validEmail(r.Email); err != nil {
+		problems["email"] = err.Error()
+	}
+
+	if err := validPassword(r.Password); err != nil {
+		problems["password"] = err.Error()
+	}
+
+	return problems
+}

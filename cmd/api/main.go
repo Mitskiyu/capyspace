@@ -39,7 +39,7 @@ func run(getenv func(string, string) string) error {
 
 	srv := http.Server{
 		Addr:    addr,
-		Handler: router.New(),
+		Handler: router.New(db),
 	}
 
 	sig := make(chan os.Signal, 1)

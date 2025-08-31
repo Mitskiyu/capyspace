@@ -1,0 +1,36 @@
+package auth
+
+import (
+	"log"
+	"net/http"
+
+	"github.com/Mitskiyu/capyspace/internal/util"
+)
+
+type Handler struct {
+	service Service
+}
+
+func NewHandler(service Service) *Handler {
+	return &Handler{
+		service: service,
+	}
+}
+
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
+	req, _, err := util.Decode[RegisterReq](r)
+	if err != nil {
+		log.Printf("%v at %s", err, r.URL.Path)
+		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	if _, err := h.service.Register(ctx, req.Email, req.Password); err != nil {
+		log.Printf("%v at %s", err, r.URL.Path)
+		http.Error(w, "Could not register user", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}

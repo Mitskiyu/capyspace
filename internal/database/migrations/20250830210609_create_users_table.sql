@@ -3,7 +3,7 @@
 CREATE TABLE users (
     id uuid PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(64) NOT NULL,
+    password VARCHAR(96) NOT NULL,
     username VARCHAR(32),
     display_name VARCHAR(32),
     provider VARCHAR(20) NOT NULL DEFAULT 'email',
