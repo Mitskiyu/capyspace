@@ -23,6 +23,10 @@ func validPassword(password string) error {
 		return fmt.Errorf("password cannot be less than 8 chars")
 	}
 
+	if len(password) > 64 {
+		return fmt.Errorf("password cannot be longer than 64 chars")
+	}
+
 	return nil
 }
 

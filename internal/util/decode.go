@@ -18,7 +18,7 @@ func Decode[T Validator](r *http.Request) (T, map[string]string, error) {
 	}
 
 	if problems := v.Valid(r.Context()); len(problems) > 0 {
-		return v, problems, fmt.Errorf("failed to validate %T: %d problems", v, len(problems))
+		return v, problems, fmt.Errorf("failed to validate %T: %+v", v, problems)
 	}
 
 	return v, nil, nil
