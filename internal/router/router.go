@@ -5,14 +5,18 @@ import (
 	"net/http"
 
 	"github.com/Mitskiyu/capyspace/internal/auth"
+	"github.com/Mitskiyu/capyspace/internal/database"
 	"github.com/Mitskiyu/capyspace/internal/database/sqlc"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/redis/go-redis/v9"
 )
 
-func New(db *sql.DB) http.Handler {
+func New(db *sql.DB, rdb *redis.Client) http.Handler {
 	store := sqlc.New(db)
-	authHandler := auth.NewHandler(auth.NewService(store))
+	cache := database.NewCache(rdb)
+
+	authHandler := auth.NewHandler(auth.NewService(store, cache))
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)

@@ -10,15 +10,20 @@ import (
 
 type Store interface {
 	CreateUser(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, error)
+	GetUserByEmail(ctx context.Context, email string) (sqlc.User, error)
 }
+
+type Cache interface{}
 
 type service struct {
 	store Store
+	cache Cache
 }
 
-func NewService(store Store) service {
+func NewService(store Store, cache Cache) service {
 	return service{
 		store: store,
+		cache: cache,
 	}
 }
 

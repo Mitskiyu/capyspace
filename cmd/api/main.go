@@ -17,12 +17,15 @@ import (
 
 func run(getenv func(string, string) string) error {
 	var (
-		addr     = ":" + getenv("PORT", "8080")
-		user     = getenv("DB_USER", "postgres")
-		password = getenv("DB_PASSWORD", "postgres")
-		host     = getenv("DB_HOST", "localhost")
-		port     = getenv("DB_PORT", "5432")
-		name     = getenv("DB_NAME", "capyspace")
+		addr      = ":" + getenv("PORT", "8080")
+		user      = getenv("DB_USER", "postgres")
+		password  = getenv("DB_PASSWORD", "postgres")
+		host      = getenv("DB_HOST", "localhost")
+		port      = getenv("DB_PORT", "5432")
+		name      = getenv("DB_NAME", "capyspace")
+		rpassword = getenv("RD_PASSWORD", "")
+		rport     = getenv("RD_PORT", "6379")
+		rhost     = getenv("RD_HOST", "localhost")
 	)
 
 	log.Println("Connecting to postgres database...")
@@ -37,9 +40,24 @@ func run(getenv func(string, string) string) error {
 	}
 	log.Printf("Successfully connected to %s@%s:%s/%s", user, host, port, name)
 
+	log.Println("Connecting to redis client...")
+	rdb, err := database.ConnectRedis(rpassword, rhost, rport, "0")
+	if err != nil {
+		return err
+	}
+	defer rdb.Close()
+
+	rctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	if err := database.PingRedis(rctx, rdb); err != nil {
+		return err
+	}
+	log.Printf("Successfully connected to redis@%s:%s/%s", rhost, rport, "0")
+
 	srv := http.Server{
 		Addr:              addr,
-		Handler:           router.New(db),
+		Handler:           router.New(db, rdb),
 		ReadTimeout:       5 * time.Second,
 		WriteTimeout:      10 * time.Second,
 		ReadHeaderTimeout: 2 * time.Second,
