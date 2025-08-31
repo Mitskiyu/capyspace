@@ -12,17 +12,17 @@ type Store interface {
 	CreateUser(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, error)
 }
 
-type Service struct {
+type service struct {
 	store Store
 }
 
-func NewService(store Store) Service {
-	return Service{
+func NewService(store Store) service {
+	return service{
 		store: store,
 	}
 }
 
-func (s *Service) Register(ctx context.Context, email, password string) (sqlc.User, error) {
+func (s *service) register(ctx context.Context, email, password string) (*sqlc.User, error) {
 	password = hashPassword(password)
 	params := sqlc.CreateUserParams{
 		ID:       uuid.New(),
@@ -32,8 +32,8 @@ func (s *Service) Register(ctx context.Context, email, password string) (sqlc.Us
 
 	user, err := s.store.CreateUser(ctx, params)
 	if err != nil {
-		return sqlc.User{}, fmt.Errorf("failed to create user: %w", err)
+		return &sqlc.User{}, fmt.Errorf("failed to create user: %w", err)
 	}
 
-	return user, nil
+	return &user, nil
 }

@@ -7,17 +7,17 @@ import (
 	"github.com/Mitskiyu/capyspace/internal/util"
 )
 
-type Handler struct {
-	service Service
+type handler struct {
+	service service
 }
 
-func NewHandler(service Service) *Handler {
-	return &Handler{
+func NewHandler(service service) *handler {
+	return &handler{
 		service: service,
 	}
 }
 
-func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
+func (h *handler) Register(w http.ResponseWriter, r *http.Request) {
 	req, _, err := util.Decode[RegisterReq](r)
 	if err != nil {
 		log.Printf("%v at %s", err, r.URL.Path)
@@ -26,7 +26,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	if _, err := h.service.Register(ctx, req.Email, req.Password); err != nil {
+	if _, err := h.service.register(ctx, req.Email, req.Password); err != nil {
 		log.Printf("%v at %s", err, r.URL.Path)
 		http.Error(w, "Could not register user", http.StatusInternalServerError)
 		return
