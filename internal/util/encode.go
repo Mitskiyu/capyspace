@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func encode[T any](w http.ResponseWriter, status int, v T, err error) error {
+func Encode[T any](w http.ResponseWriter, status int, v T, err error) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	log.Println(err)
