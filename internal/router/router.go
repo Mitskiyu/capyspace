@@ -26,6 +26,7 @@ func New(db *sql.DB, rdb *redis.Client) http.Handler {
 		w.Write([]byte("ok"))
 	})
 	r.Post("/register", authHandler.Register)
+	r.Post("/login", authHandler.Login)
 
 	return r
 }

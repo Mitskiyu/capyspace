@@ -30,14 +30,14 @@ func validPassword(password string) error {
 	return nil
 }
 
-func (r RegisterReq) Valid(ctx context.Context) map[string]string {
+func (c Credentials) Valid(ctx context.Context) map[string]string {
 	problems := make(map[string]string)
 
-	if err := validEmail(r.Email); err != nil {
+	if err := validEmail(c.Email); err != nil {
 		problems["email"] = err.Error()
 	}
 
-	if err := validPassword(r.Password); err != nil {
+	if err := validPassword(c.Password); err != nil {
 		problems["password"] = err.Error()
 	}
 
