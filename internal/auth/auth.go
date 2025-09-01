@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Mitskiyu/capyspace/internal/database/sqlc"
 	"github.com/google/uuid"
@@ -13,7 +14,9 @@ type Store interface {
 	GetUserByEmail(ctx context.Context, email string) (sqlc.User, error)
 }
 
-type Cache interface{}
+type Cache interface {
+	SetSession(ctx context.Context, sessionId, userId string, exp time.Duration) error
+}
 
 type service struct {
 	store Store

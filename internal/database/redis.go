@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -34,4 +35,8 @@ func PingRedis(ctx context.Context, rdb *redis.Client) error {
 	}
 
 	return nil
+}
+
+func (c *cache) SetSession(ctx context.Context, sessionId, userId string, exp time.Duration) error {
+	return c.rdb.Set(ctx, sessionId, userId, exp).Err()
 }
