@@ -30,8 +30,8 @@ func ConnectRedis(password, host, port, db string) (*redis.Client, error) {
 }
 
 func PingRedis(ctx context.Context, rdb *redis.Client) error {
-	if status := rdb.Ping(ctx); status.Err() != nil {
-		return fmt.Errorf("failed to ping redis: %w", status.Err())
+	if cmd := rdb.Ping(ctx); cmd.Err() != nil {
+		return fmt.Errorf("failed to ping redis: %w", cmd.Err())
 	}
 
 	return nil
@@ -39,4 +39,15 @@ func PingRedis(ctx context.Context, rdb *redis.Client) error {
 
 func (c *cache) SetSession(ctx context.Context, sessionId, userId string, exp time.Duration) error {
 	return c.rdb.Set(ctx, sessionId, userId, exp).Err()
+}
+
+func (c *cache) GetSession(ctx context.Context, sessionId string) (string, error) {
+	cmd := c.rdb.Get(ctx, sessionId)
+	if cmd.Err() == redis.Nil {
+		return "", fmt.Errorf("session does not exist")
+	} else if cmd.Err() != nil {
+		return "", cmd.Err()
+	}
+
+	return cmd.Val(), nil
 }

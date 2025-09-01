@@ -17,6 +17,7 @@ type Store interface {
 
 type Cache interface {
 	SetSession(ctx context.Context, sessionId, userId string, exp time.Duration) error
+	GetSession(ctx context.Context, sessionId string) (string, error)
 }
 
 type service struct {
@@ -66,4 +67,13 @@ func (s *service) login(ctx context.Context, email, password string) (*sqlc.User
 	}
 
 	return &user, sessionId, nil
+}
+
+func (s *service) validateSession(ctx context.Context, sessionId string) (string, error) {
+	userId, err := s.cache.GetSession(ctx, sessionId)
+	if err != nil {
+		return "", fmt.Errorf("failed to get session with %s: %v", sessionId, err)
+	}
+
+	return userId, nil
 }
