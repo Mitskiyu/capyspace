@@ -3,7 +3,6 @@ package auth
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/Mitskiyu/capyspace/internal/user"
 	"github.com/Mitskiyu/capyspace/internal/util"
@@ -59,7 +58,7 @@ func (h *handler) Login(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Secure:   r.TLS != nil,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(30 * 24 * time.Hour.Seconds()),
+		MaxAge:   60 * 60 * 24 * 30, // 30 days
 		Path:     "/",
 	}
 
