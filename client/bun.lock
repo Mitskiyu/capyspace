@@ -146,6 +146,12 @@
 
     "@rushstack/eslint-patch": ["@rushstack/eslint-patch@1.12.0", "", {}, "sha512-5EwMtOqvJMMa3HbmxLlF74e+3/HhwBTMcvt3nqVJgGCozO6hzIPOBlwm8mGVNR9SN2IJpxSnlxczyDjcn7qIyw=="],
 
+    "@squircle/core": ["@squircle/core@1.0.6", "", { "peerDependencies": { "@squircle/paint-polyfill": "^1.0.3" } }, "sha512-jvAIehtarEHBl6W80LNiZ9KWVKdJw6jGj/avwwbCoGVs9t+AUA5YVmUyAtEasFtoocHwxbbRsdnTeKxQ+061aQ=="],
+
+    "@squircle/paint-polyfill": ["@squircle/paint-polyfill@1.0.6", "", {}, "sha512-w3FotA1v53MG+R6eGM37wv1aVoW3jwymwGteGCGXEM10Gq7zYeCus5dTgcyW6fhc9piRqsFLyU8MIl+EbtM9RA=="],
+
+    "@squircle/tailwindcss": ["@squircle/tailwindcss@1.0.6", "", {}, "sha512-tmOWdpX7lzBAJzuvajn4NVBtC7mVORmzf/jKREYMw8iJ806Xq4FCUkrtbxkd9blzOx7TG2JwLF3avh5It/Z6TQ=="],
+
     "@swc/helpers": ["@swc/helpers@0.5.15", "", { "dependencies": { "tslib": "^2.8.0" } }, "sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g=="],
 
     "@tailwindcss/node": ["@tailwindcss/node@4.1.12", "", { "dependencies": { "@jridgewell/remapping": "^2.3.4", "enhanced-resolve": "^5.18.3", "jiti": "^2.5.1", "lightningcss": "1.30.1", "magic-string": "^0.30.17", "source-map-js": "^1.2.1", "tailwindcss": "4.1.12" } }, "sha512-3hm9brwvQkZFe++SBt+oLjo4OLDtkvlE8q2WalaD/7QWaeM7KEJbAiY/LJZUaCs7Xa8aUu4xy3uoyX4q54UVdQ=="],

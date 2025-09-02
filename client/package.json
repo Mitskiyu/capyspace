@@ -9,9 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@squircle/core": "^1.0.6",
+    "@squircle/paint-polyfill": "^1.0.6",
+    "@squircle/tailwindcss": "^1.0.6",
+    "next": "15.5.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "next": "15.5.2"
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
     "typescript": "^5",
