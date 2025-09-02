@@ -16,14 +16,27 @@ func (h *handler) SessionMiddleware(next http.Handler) http.Handler {
 		}
 
 		ctx := r.Context()
-		userId, err := h.service.validateSession(ctx, cookie.Value)
+		userId, expiring, err := h.service.sessionMiddleware(ctx, cookie.Value)
 		if err != nil {
-			log.Printf("failed to validate session at %s: %v", r.URL.Path, err)
+			log.Printf("%v at %s", err, r.URL.Path)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
+
 		}
 
-		// TODO: call revalidate session if cache expiry date < 7 days
+		if expiring {
+			refreshed := &http.Cookie{
+				Name:     cookie.Name,
+				Value:    cookie.Value,
+				HttpOnly: cookie.HttpOnly,
+				Secure:   cookie.Secure,
+				SameSite: cookie.SameSite,
+				MaxAge:   60 * 60 * 24 * 30, // 30 days
+				Path:     cookie.Path,
+			}
+
+			http.SetCookie(w, refreshed)
+		}
 
 		ctx = context.WithValue(ctx, "user_id", userId)
 		next.ServeHTTP(w, r.WithContext(ctx))

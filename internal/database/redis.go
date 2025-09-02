@@ -41,13 +41,15 @@ func (c *cache) SetSession(ctx context.Context, sessionId, userId string, exp ti
 	return c.rdb.Set(ctx, sessionId, userId, exp).Err()
 }
 
-func (c *cache) GetSession(ctx context.Context, sessionId string) (string, error) {
-	cmd := c.rdb.Get(ctx, sessionId)
-	if cmd.Err() == redis.Nil {
-		return "", fmt.Errorf("session does not exist")
-	} else if cmd.Err() != nil {
-		return "", cmd.Err()
-	}
+func (c *cache) GetSession(ctx context.Context, sessionId string) (string, time.Duration, error) {
+	pipe := c.rdb.Pipeline()
+	cmd := pipe.Get(ctx, sessionId)
+	ttl := pipe.TTL(ctx, sessionId)
+	_, err := pipe.Exec(ctx)
 
-	return cmd.Val(), nil
+	return cmd.Val(), ttl.Val(), err
+}
+
+func (c *cache) UpdateSessionTTL(ctx context.Context, sessionId string, exp time.Duration) error {
+	return c.rdb.Expire(ctx, sessionId, exp).Err()
 }

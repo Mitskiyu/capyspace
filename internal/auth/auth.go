@@ -17,7 +17,8 @@ type Store interface {
 
 type Cache interface {
 	SetSession(ctx context.Context, sessionId, userId string, exp time.Duration) error
-	GetSession(ctx context.Context, sessionId string) (string, error)
+	GetSession(ctx context.Context, sessionId string) (string, time.Duration, error)
+	UpdateSessionTTL(ctx context.Context, sessionId string, exp time.Duration) error
 }
 
 type service struct {
@@ -69,11 +70,24 @@ func (s *service) login(ctx context.Context, email, password string) (*sqlc.User
 	return &user, sessionId, nil
 }
 
-func (s *service) validateSession(ctx context.Context, sessionId string) (string, error) {
-	userId, err := s.cache.GetSession(ctx, sessionId)
-	if err != nil {
-		return "", fmt.Errorf("failed to get session with %s: %v", sessionId, err)
+func (s *service) sessionMiddleware(ctx context.Context, sessionId string) (string, bool, error) {
+	if err := validSessionId(sessionId); err != nil {
+		return "", false, fmt.Errorf("failed to validate session id %s: %w", sessionId, err)
 	}
 
-	return userId, nil
+	userId, ttl, err := s.cache.GetSession(ctx, sessionId)
+	if err != nil {
+		return "", false, fmt.Errorf("failed to get session for %s: %w", sessionId, err)
+	}
+
+	expiring := ttl < 7*24*time.Hour
+	if expiring {
+		if err := s.cache.UpdateSessionTTL(ctx, sessionId, 30*24*time.Hour); err != nil {
+			return "", expiring, fmt.Errorf("failed to update session ttl for %s: %w", sessionId, err)
+		}
+
+		return userId, expiring, nil
+	}
+
+	return userId, false, nil
 }

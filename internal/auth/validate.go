@@ -2,9 +2,24 @@ package auth
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/mail"
 )
+
+func (c Credentials) Valid(ctx context.Context) map[string]string {
+	problems := make(map[string]string)
+
+	if err := validEmail(c.Email); err != nil {
+		problems["email"] = err.Error()
+	}
+
+	if err := validPassword(c.Password); err != nil {
+		problems["password"] = err.Error()
+	}
+
+	return problems
+}
 
 func validEmail(email string) error {
 	if len(email) > 255 {
@@ -30,16 +45,20 @@ func validPassword(password string) error {
 	return nil
 }
 
-func (c Credentials) Valid(ctx context.Context) map[string]string {
-	problems := make(map[string]string)
-
-	if err := validEmail(c.Email); err != nil {
-		problems["email"] = err.Error()
+func validSessionId(sessionId string) error {
+	// 15 bytes = 20 base64 chars
+	if len(sessionId) != 20 {
+		return fmt.Errorf("invalid session id length")
 	}
 
-	if err := validPassword(c.Password); err != nil {
-		problems["password"] = err.Error()
+	decoded, err := base64.StdEncoding.DecodeString(sessionId)
+	if err != nil {
+		return err
 	}
 
-	return problems
+	if len(decoded) != 15 {
+		return fmt.Errorf("invalid base64 session id length")
+	}
+
+	return nil
 }
