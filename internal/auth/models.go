@@ -9,6 +9,14 @@ type Credentials struct {
 	Password string `json:"password"`
 }
 
+type EmailReq struct {
+	Email string `json:"email"`
+}
+
+type EmailRes struct {
+	Exists bool `json:"exists"`
+}
+
 type RegisterReq struct {
 	Credentials
 }

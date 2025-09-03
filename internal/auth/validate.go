@@ -21,6 +21,16 @@ func (c Credentials) Valid(ctx context.Context) map[string]string {
 	return problems
 }
 
+func (e EmailReq) Valid(ctx context.Context) map[string]string {
+	problems := make(map[string]string)
+
+	if err := validEmail(e.Email); err != nil {
+		problems["email"] = err.Error()
+	}
+
+	return problems
+}
+
 func validEmail(email string) error {
 	if len(email) > 255 {
 		return fmt.Errorf("email cannot be longer than 255 chars")

@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -30,6 +31,18 @@ func NewService(store Store, cache Cache) service {
 	return service{
 		store: store,
 		cache: cache,
+	}
+}
+
+func (s *service) checkEmail(ctx context.Context, email string) (bool, error) {
+	_, err := s.store.GetUserByEmail(ctx, email)
+	switch {
+	case err == nil:
+		return true, nil
+	case errors.Is(err, sql.ErrNoRows):
+		return false, nil
+	default:
+		return false, err
 	}
 }
 
