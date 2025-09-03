@@ -9,12 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.1",
     "@squircle/core": "^1.0.6",
     "@squircle/paint-polyfill": "^1.0.6",
     "@squircle/tailwindcss": "^1.0.6",
     "next": "15.5.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "react-hook-form": "^7.62.0",
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "typescript": "^5",
