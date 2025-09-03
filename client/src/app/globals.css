@@ -1,26 +1,31 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+	--color-vibrant-petal: #f4b8d6;
+	--color-vibrant-blush: #f2a7b3;
+	--color-vibrant-bloom: #e6a0f2;
+	--color-vibrant-lilac: #cba6f7;
+	--color-vibrant-orchid: #b463f6;
+	--color-vibrant-sunset: #f38ba8;
+	--color-vibrant-coral: #f48f6b;
+	--color-vibrant-apricot: #f9ae6b;
+	--color-vibrant-buttercup: #f2cd76;
+	--color-vibrant-mint: #a6d189;
+	--color-vibrant-seafoam: #81c8be;
+	--color-vibrant-sky: #99d1db;
+	--color-vibrant-cloud: #89b4fa;
+	--color-vibrant-dream: #b4befe;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+	--color-neutrals-text: #4c4f69;
+	--color-neutrals-subtext1: #5c5f77;
+	--color-neutrals-subtext0: #6c6f85;
+	--color-neutrals-overlay2: #7c7f93;
+	--color-neutrals-overlay1: #8c8fa1;
+	--color-neutrals-overlay0: #9ca0b0;
+	--color-neutrals-surface2: #acb0be;
+	--color-neutrals-surface1: #bcc0cc;
+	--color-neutrals-surface0: #ccd0da;
+	--color-neutrals-base: #eff1f5;
+	--color-neutrals-mantle: #e6e9ef;
+	--color-neutrals-crust: #dce0e8;
 }
