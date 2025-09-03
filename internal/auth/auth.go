@@ -9,6 +9,7 @@ import (
 
 	"github.com/Mitskiyu/capyspace/internal/database/sqlc"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type Store interface {
@@ -46,7 +47,7 @@ func (s *service) checkEmail(ctx context.Context, email string) (bool, error) {
 	}
 }
 
-func (s *service) register(ctx context.Context, email, password string) (*sqlc.User, error) {
+func (s *service) register(ctx context.Context, email, password string) (bool, *sqlc.User, error) {
 	password = hashPassword(password)
 	params := sqlc.CreateUserParams{
 		ID:       uuid.New(),
@@ -56,31 +57,40 @@ func (s *service) register(ctx context.Context, email, password string) (*sqlc.U
 
 	user, err := s.store.CreateUser(ctx, params)
 	if err != nil {
-		return &sqlc.User{}, fmt.Errorf("failed to create user: %w", err)
+		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
+			return false, nil, nil
+		}
+		return false, nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
-	return &user, nil
+	return true, &user, nil
 }
 
-func (s *service) login(ctx context.Context, email, password string) (*sqlc.User, string, error) {
+func (s *service) login(ctx context.Context, email, password string) (bool, *sqlc.User, string, error) {
 	user, err := s.store.GetUserByEmail(ctx, email)
-	if err == sql.ErrNoRows {
-		return &sqlc.User{}, "", fmt.Errorf("user does not exist: %w", err)
-	} else if err != nil {
-		return &sqlc.User{}, "", fmt.Errorf("failed to find user: %w", err)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return false, nil, "", nil
+	case err != nil:
+		return false, nil, "", fmt.Errorf("failed to find user: %w", err)
 	}
 
-	if err := comparePassword(user.Password, password); err != nil {
-		return &sqlc.User{}, "", fmt.Errorf("compare password did not succeed: %w", err)
+	equal, err := comparePassword(user.Password, password)
+	if err != nil {
+		return false, &user, "", fmt.Errorf("failed to compare password: %w", err)
+	}
+
+	if !equal {
+		return false, &user, "", nil
 	}
 
 	sessionId := createSessionId()
 	exp := 24 * 30 * time.Hour
 	if err := s.cache.SetSession(ctx, sessionId, user.ID.String(), exp); err != nil {
-		return &sqlc.User{}, "", fmt.Errorf("failed to set session for user %s: %v", user.ID.String(), err)
+		return false, &sqlc.User{}, "", fmt.Errorf("failed to set session for user %s: %v", user.ID.String(), err)
 	}
 
-	return &user, sessionId, nil
+	return true, &user, sessionId, nil
 }
 
 func (s *service) sessionMiddleware(ctx context.Context, sessionId string) (string, bool, error) {

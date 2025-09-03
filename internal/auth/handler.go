@@ -48,9 +48,13 @@ func (h *handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	if _, err := h.service.register(ctx, req.Email, req.Password); err != nil {
+	if created, _, err := h.service.register(ctx, req.Email, req.Password); err != nil {
 		log.Printf("%v at %s", err, r.URL.Path)
-		http.Error(w, "Could not register user", http.StatusInternalServerError)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	} else if !created {
+		log.Printf("Attempted to register existing email: %s", req.Email)
+		http.Error(w, "Invalid Request", http.StatusBadRequest)
 		return
 	}
 
@@ -66,10 +70,24 @@ func (h *handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	u, sessionId, err := h.service.login(ctx, req.Email, req.Password)
+	ok, u, sessionId, err := h.service.login(ctx, req.Email, req.Password)
 	if err != nil {
 		log.Printf("%v at %s", err, r.URL.Path)
-		http.Error(w, "Could not log in", http.StatusUnauthorized)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if !ok {
+		res := LoginRes{
+			Message: "Login failed",
+			User: user.Info{
+				Id:    "Invalid",
+				Email: req.Email,
+			},
+		}
+		if err := util.Encode(w, http.StatusUnauthorized, res); err != nil {
+			log.Printf("%v at %s", err, r.URL.Path)
+		}
 		return
 	}
 

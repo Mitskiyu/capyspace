@@ -30,18 +30,18 @@ func hashPassword(password string) string {
 	)
 }
 
-func comparePassword(stored, password string) error {
+func comparePassword(stored, password string) (bool, error) {
 	sep := strings.Split(stored, "$")
 	saltStr, hashStr := sep[0], sep[1]
 
 	salt, err := base64.RawStdEncoding.DecodeString(saltStr)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	hash, err := base64.RawStdEncoding.DecodeString(hashStr)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	passw := argon2.IDKey(
@@ -54,8 +54,8 @@ func comparePassword(stored, password string) error {
 	)
 
 	if subtle.ConstantTimeCompare(passw, hash) == 0 {
-		return fmt.Errorf("password does not match stored hash")
+		return false, nil
 	}
 
-	return nil
+	return true, nil
 }
