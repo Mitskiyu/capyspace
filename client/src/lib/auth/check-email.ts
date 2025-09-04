@@ -1,8 +1,14 @@
-export async function checkEmail(email: string): Promise<boolean> {
-	const url = process.env.NEXT_PUBLIC_API_URL;
-	if (!url) {
-		throw new Error("NEXT_PUBLIC_API_URL not set");
-	}
+import { env } from "@/env";
+import { z } from "zod";
+
+type Result = { ok: true; exists: boolean } | { ok: false; error: string };
+
+const schema = z.object({
+	exists: z.boolean(),
+});
+
+export async function checkEmail(email: string): Promise<Result> {
+	const url = env.NEXT_PUBLIC_API_URL;
 
 	try {
 		const res = await fetch(`${url}/check-email`, {
@@ -14,13 +20,21 @@ export async function checkEmail(email: string): Promise<boolean> {
 		});
 
 		if (!res.ok) {
-			throw new Error(`Request failed with status ${res.status}`);
+			return { ok: false, error: `Internal server error` };
 		}
 
-		const data: { exists: boolean } = await res.json();
-		return data.exists;
+		const json = await res.json();
+		const parsed = schema.safeParse(json);
+
+		if (!parsed.success) {
+			return { ok: false, error: "Invalid response format" };
+		}
+
+		return { ok: true, exists: parsed.data.exists };
 	} catch (e) {
-		console.error("Error checking email: ", e);
-		throw e;
+		return {
+			ok: false,
+			error: e instanceof Error ? e.message : "Unknown error",
+		};
 	}
 }

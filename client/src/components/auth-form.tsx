@@ -38,6 +38,7 @@ function AuthForm() {
 	const {
 		register,
 		handleSubmit,
+		setError,
 		formState: { errors, isValid },
 	} = useForm<Inputs>({
 		resolver: zodResolver(schema),
@@ -46,8 +47,15 @@ function AuthForm() {
 
 	async function onSubmit(data: Inputs) {
 		if (state === "email") {
-			const exists = await checkEmail(data.email);
-			setState(exists ? "login" : "signup");
+			const result = await checkEmail(data.email);
+
+			if (!result.ok) {
+				setError("email", { type: "manual", message: result.error });
+				console.error(result.error);
+				return;
+			}
+
+			setState(result.exists ? "login" : "signup");
 			return;
 		}
 
