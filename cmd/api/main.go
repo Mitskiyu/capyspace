@@ -13,11 +13,13 @@ import (
 	"github.com/Mitskiyu/capyspace/internal/database"
 	"github.com/Mitskiyu/capyspace/internal/router"
 	"github.com/Mitskiyu/capyspace/internal/util"
+	"github.com/joho/godotenv"
 )
 
 func run(getenv func(string, string) string) error {
 	var (
 		addr      = ":" + getenv("PORT", "8080")
+		origins   = getenv("ALLOWED_ORIGINS", "http://localhost:3000")
 		user      = getenv("DB_USER", "postgres")
 		password  = getenv("DB_PASSWORD", "postgres")
 		host      = getenv("DB_HOST", "localhost")
@@ -57,7 +59,7 @@ func run(getenv func(string, string) string) error {
 
 	srv := http.Server{
 		Addr:              addr,
-		Handler:           router.New(db, rdb),
+		Handler:           router.New(db, rdb, origins),
 		ReadTimeout:       5 * time.Second,
 		WriteTimeout:      10 * time.Second,
 		ReadHeaderTimeout: 2 * time.Second,
@@ -95,6 +97,10 @@ func run(getenv func(string, string) string) error {
 }
 
 func main() {
+	if os.Getenv("ENV") != "production" {
+		godotenv.Load()
+	}
+
 	if err := run(util.GetEnv); err != nil {
 		log.Fatal(err)
 	}
