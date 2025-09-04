@@ -1,6 +1,7 @@
 "use client";
 import { google, logo } from "@/assets";
 import { checkEmail } from "@/lib/auth/check-email";
+import { signUp } from "@/lib/auth/sign-up";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useState } from "react";
@@ -60,7 +61,17 @@ function AuthForm() {
 		}
 
 		if (state === "signup") {
-			// todo
+			if (!data.password) return;
+
+			const result = await signUp(data.email, data.password);
+
+			if (!result.ok) {
+				setError("password", { type: "manual", message: result.error });
+				console.error(result.error);
+				return;
+			}
+
+			// redirect!
 		}
 	}
 

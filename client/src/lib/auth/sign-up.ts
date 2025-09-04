@@ -1,0 +1,32 @@
+import { env } from "@/env";
+
+type Result = { ok: true; created: boolean } | { ok: false; error: string };
+
+export async function signUp(email: string, password: string): Promise<Result> {
+	const url = env.NEXT_PUBLIC_API_URL;
+
+	try {
+		const res = await fetch(`${url}/register`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ email, password }),
+		});
+
+		if (!res.ok) {
+			return { ok: false, error: "Internal server error" };
+		}
+
+		if (res.status === 201) {
+			return { ok: true, created: true };
+		} else if (res.status === 400) {
+			return { ok: false, error: "Email already exists" };
+		} else {
+			return { ok: false, error: "Internal server error" };
+		}
+	} catch (e) {
+		return {
+			ok: false,
+			error: e instanceof Error ? e.message : "Unknown error",
+		};
+	}
+}
