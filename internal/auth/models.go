@@ -26,6 +26,6 @@ type LoginReq struct {
 }
 
 type LoginRes struct {
-	Message string `json:"message"`
-	User    user.Info
+	Message string    `json:"message"`
+	User    user.Info `json:"user"`
 }
