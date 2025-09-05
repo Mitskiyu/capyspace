@@ -17,6 +17,7 @@ export async function login(email: string, password: string): Promise<Result> {
 	try {
 		const res = await fetch(`${url}/login`, {
 			method: "POST",
+			credentials: "include",
 			headers: {
 				"Content-Type": "application/json",
 			},
