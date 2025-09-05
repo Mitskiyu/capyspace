@@ -1,10 +1,10 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE users (
-    id uuid PRIMARY KEY,
+    id UUID PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(96) NOT NULL,
-    username VARCHAR(32),
+    username VARCHAR(32) UNIQUE,
     display_name VARCHAR(32),
     provider VARCHAR(20) NOT NULL DEFAULT 'email',
     provider_id VARCHAR(255),
@@ -24,8 +24,6 @@ CREATE TRIGGER users_update_modified_at
     BEFORE UPDATE ON users
     FOR EACH ROW
     EXECUTE FUNCTION update_modified_at();
-
-
 -- +goose StatementEnd
 
 -- +goose Down
