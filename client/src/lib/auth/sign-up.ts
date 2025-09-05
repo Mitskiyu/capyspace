@@ -12,10 +12,6 @@ export async function signUp(email: string, password: string): Promise<Result> {
 			body: JSON.stringify({ email, password }),
 		});
 
-		if (!res.ok) {
-			return { ok: false, error: "Internal server error" };
-		}
-
 		if (res.status === 201) {
 			return { ok: true, created: true };
 		} else if (res.status === 400) {
