@@ -1,7 +1,6 @@
 "use client";
 import { google, logo } from "@/assets";
-import { checkEmail } from "@/lib/auth/check-email";
-import { signUp } from "@/lib/auth/sign-up";
+import { checkEmail, login, signUp } from "@/lib/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useState } from "react";
@@ -11,12 +10,21 @@ import { z } from "zod";
 const schema = z
 	.object({
 		email: z.email("Email is invalid"),
-		password: z
-			.string()
-			.min(8, "Password must be at least 8 characters")
-			.optional(),
+		password: z.string().min(1, "Password is required").optional(),
 		confirm: z.string().min(1, "Please confirm your password").optional(),
 	})
+	.refine(
+		(data) => {
+			if (data.confirm && data.password && data.password.length < 8) {
+				return false;
+			}
+			return true;
+		},
+		{
+			message: "Password must be at least 8 characters",
+			path: ["password"],
+		},
+	)
 	.refine(
 		(data) => {
 			if (data.password && data.confirm) {
@@ -39,7 +47,9 @@ function AuthForm() {
 	const {
 		register,
 		handleSubmit,
+		resetField,
 		setError,
+		clearErrors,
 		formState: { errors, isValid },
 	} = useForm<Inputs>({
 		resolver: zodResolver(schema),
@@ -64,6 +74,20 @@ function AuthForm() {
 			if (!data.password) return;
 
 			const result = await signUp(data.email, data.password);
+
+			if (!result.ok) {
+				setError("password", { type: "manual", message: result.error });
+				console.error(result.error);
+				return;
+			}
+
+			// call login -> redirect!
+		}
+
+		if (state === "login") {
+			if (!data.password) return;
+
+			const result = await login(data.email, data.password);
 
 			if (!result.ok) {
 				setError("password", { type: "manual", message: result.error });
@@ -105,26 +129,27 @@ function AuthForm() {
 					onSubmit={handleSubmit(onSubmit)}
 					className="flex w-full flex-col items-center"
 				>
-					{errors && (
+					{(errors.email || errors.password || errors.confirm) && (
 						<div className="text-vibrant-coral mt-2 text-sm">
-							{errors.email && <span>{errors.email.message}</span>}
-							{!errors.email && errors.password && (
-								<span>{errors.password.message}</span>
-							)}
-							{!errors.email && !errors.password && errors.confirm && (
-								<span>{errors.confirm.message}</span>
-							)}
+							<span>
+								{errors.email?.message ||
+									errors.password?.message ||
+									errors.confirm?.message}
+							</span>
 						</div>
 					)}
 					<input
 						{...register("email")}
 						onChange={(e) => {
 							if (state !== "email") setState("email");
+							clearErrors();
+							resetField("password");
+							resetField("confirm");
 							register("email").onChange(e);
 						}}
 						type="text"
 						placeholder="Enter your email"
-						className={`bg-neutrals-surface0 focus:border-vibrant-bloom h-10 w-11/12 rounded-2xl border-1 px-4 py-2 text-base transition-colors duration-300 ease-out placeholder:text-base focus:border-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${errors.email || errors.password || errors.confirm ? "mt-2" : "mt-4"} ${state === "email" ? "border-neutrals-overlay0" : "border-transparent"} ${errors.email ? "border-vibrant-coral" : ""}`}
+						className={`bg-neutrals-surface0 focus:ring-vibrant-bloom h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${errors.email || errors.password || errors.confirm ? "mt-2" : "mt-4"} ${state === "email" ? "ring-neutrals-overlay0" : ""} ${errors.email ? "ring-vibrant-coral" : ""}`}
 					/>
 
 					{state === "signup" && (
@@ -133,22 +158,29 @@ function AuthForm() {
 								{...register("password")}
 								type="password"
 								placeholder="Enter your password"
-								className={`bg-neutrals-surface0 focus:border-vibrant-bloom border-neutrals-overlay0 h-10 w-11/12 rounded-2xl border-1 px-4 py-2 text-base transition-colors duration-300 ease-out placeholder:text-base focus:border-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg mt-2 ${errors.password ? "border-vibrant-coral border-2" : ""}`}
+								className={`bg-neutrals-surface0 focus:ring-vibrant-bloom ring-neutrals-overlay0 mt-2 h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${errors.password ? "ring-vibrant-coral ring-2" : ""}`}
 							/>
 							<input
 								{...register("confirm")}
 								type="password"
 								placeholder="Confirm your password"
-								className={`bg-neutrals-surface0 focus:border-vibrant-bloom h-10 w-11/12 rounded-2xl border-1 px-4 py-2 text-base transition-colors duration-300 ease-out placeholder:text-base focus:border-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg mt-1 border-neutrals-overlay0 ${errors.confirm ? "border-vibrant-coral border-2" : ""}`}
+								className={`bg-neutrals-surface0 focus:ring-vibrant-bloom ring-neutrals-overlay0 mt-1.5 h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${errors.confirm ? "ring-vibrant-coral ring-2" : ""}`}
 							/>
 						</>
 					)}
 
-					{state === "login" && <p>Login</p>}
+					{state === "login" && (
+						<input
+							{...register("password")}
+							type="password"
+							placeholder="Enter your password"
+							className={`bg-neutrals-surface0 focus:ring-vibrant-bloom ring-neutrals-overlay0 mt-2 h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${errors.password ? "ring-vibrant-coral ring-2" : ""}`}
+						/>
+					)}
 
 					<button
 						disabled={!isValid}
-						className={`mt-2 mb-4 flex h-10 w-11/12 items-center justify-center rounded-2xl  text-base transition duration-200 sm:h-12 sm:text-lg ${
+						className={`mt-2 mb-4 flex h-10 w-11/12 items-center justify-center rounded-2xl text-base transition duration-200 sm:h-12 sm:text-lg ${
 							isValid
 								? "bg-neutrals-surface0 text-neutrals-text hover:text-vibrant-orchid cursor-pointer hover:opacity-90"
 								: "bg-neutrals-surface0 text-neutrals-text opacity-40"
