@@ -7,6 +7,7 @@ import (
 	"github.com/Mitskiyu/capyspace/internal/auth"
 	"github.com/Mitskiyu/capyspace/internal/database"
 	"github.com/Mitskiyu/capyspace/internal/database/sqlc"
+	"github.com/Mitskiyu/capyspace/internal/space"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -18,6 +19,7 @@ func New(db *sql.DB, rdb *redis.Client, origins string) http.Handler {
 	cache := database.NewCache(rdb)
 
 	authHandler := auth.NewHandler(auth.NewService(store, cache))
+	spaceHandler := space.NewHandler(space.NewService(store))
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -37,6 +39,11 @@ func New(db *sql.DB, rdb *redis.Client, origins string) http.Handler {
 	r.Post("/check-email", authHandler.CheckEmail)
 	r.Post("/register", authHandler.Register)
 	r.Post("/login", authHandler.Login)
+
+	r.Group(func(r chi.Router) {
+		r.Use(authHandler.SessionMiddleware)
+		r.Get("/create-space", spaceHandler.CreateSpace)
+	})
 
 	return r
 }

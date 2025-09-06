@@ -11,6 +11,14 @@ import (
 	"github.com/google/uuid"
 )
 
+type Space struct {
+	ID         uuid.UUID
+	UserID     uuid.UUID
+	IsPrivate  bool
+	CreatedAt  time.Time
+	ModifiedAt time.Time
+}
+
 type User struct {
 	ID          uuid.UUID
 	Email       string
