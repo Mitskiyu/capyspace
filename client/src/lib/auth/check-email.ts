@@ -1,5 +1,6 @@
 import { env } from "@/env";
 import { z } from "zod";
+import { delay } from "../util/delay";
 
 type Result = { ok: true; exists: boolean } | { ok: false; error: string };
 
@@ -11,13 +12,15 @@ export async function checkEmail(email: string): Promise<Result> {
 	const url = env.NEXT_PUBLIC_API_URL;
 
 	try {
-		const res = await fetch(`${url}/check-email`, {
+		const req = fetch(`${url}/check-email`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({ email }),
 		});
+
+		const [res] = await Promise.all([req, delay(400)]);
 
 		if (!res.ok) {
 			return { ok: false, error: `Internal server error` };

@@ -1,4 +1,5 @@
 import { env } from "@/env";
+import { delay } from "../util/delay";
 
 type Result = { ok: true; created: boolean } | { ok: false; error: string };
 
@@ -6,11 +7,13 @@ export async function signUp(email: string, password: string): Promise<Result> {
 	const url = env.NEXT_PUBLIC_API_URL;
 
 	try {
-		const res = await fetch(`${url}/register`, {
+		const req = fetch(`${url}/register`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ email, password }),
 		});
+
+		const [res] = await Promise.all([req, delay(300)]);
 
 		if (res.status === 201) {
 			return { ok: true, created: true };
