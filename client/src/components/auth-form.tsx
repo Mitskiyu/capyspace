@@ -50,7 +50,7 @@ function AuthForm() {
 		resetField,
 		setError,
 		clearErrors,
-		formState: { errors, isValid },
+		formState: { errors, isValid, isSubmitting },
 	} = useForm<Inputs>({
 		resolver: zodResolver(schema),
 		mode: "onTouched",
@@ -149,7 +149,11 @@ function AuthForm() {
 						}}
 						type="text"
 						placeholder="Enter your email"
-						className={`bg-neutrals-surface0 focus:ring-vibrant-bloom h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${errors.email || errors.password || errors.confirm ? "mt-2" : "mt-4"} ${state === "email" ? "ring-neutrals-overlay0" : ""} ${errors.email ? "ring-vibrant-coral" : ""}`}
+						className={`bg-neutrals-surface0 focus:ring-vibrant-bloom h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${
+							errors.email || errors.password || errors.confirm
+								? "mt-2"
+								: "mt-4"
+						} ${state === "email" ? "ring-neutrals-overlay0" : ""} ${errors.email ? "ring-vibrant-coral" : ""}`}
 					/>
 
 					{state === "signup" && (
@@ -158,13 +162,17 @@ function AuthForm() {
 								{...register("password")}
 								type="password"
 								placeholder="Enter your password"
-								className={`bg-neutrals-surface0 focus:ring-vibrant-bloom ring-neutrals-overlay0 mt-2 h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${errors.password ? "ring-vibrant-coral ring-2" : ""}`}
+								className={`bg-neutrals-surface0 focus:ring-vibrant-bloom ring-neutrals-overlay0 mt-2 h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${
+									errors.password ? "ring-vibrant-coral ring-2" : ""
+								}`}
 							/>
 							<input
 								{...register("confirm")}
 								type="password"
 								placeholder="Confirm your password"
-								className={`bg-neutrals-surface0 focus:ring-vibrant-bloom ring-neutrals-overlay0 mt-1.5 h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${errors.confirm ? "ring-vibrant-coral ring-2" : ""}`}
+								className={`bg-neutrals-surface0 focus:ring-vibrant-bloom ring-neutrals-overlay0 mt-1.5 h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${
+									errors.confirm ? "ring-vibrant-coral ring-2" : ""
+								}`}
 							/>
 						</>
 					)}
@@ -174,19 +182,34 @@ function AuthForm() {
 							{...register("password")}
 							type="password"
 							placeholder="Enter your password"
-							className={`bg-neutrals-surface0 focus:ring-vibrant-bloom ring-neutrals-overlay0 mt-2 h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${errors.password ? "ring-vibrant-coral ring-2" : ""}`}
+							className={`bg-neutrals-surface0 focus:ring-vibrant-bloom ring-neutrals-overlay0 mt-2 h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${
+								errors.password ? "ring-vibrant-coral ring-2" : ""
+							}`}
 						/>
 					)}
 
 					<button
-						disabled={!isValid}
+						disabled={!isValid || isSubmitting}
 						className={`mt-2 mb-4 flex h-10 w-11/12 items-center justify-center rounded-2xl text-base transition duration-200 sm:h-12 sm:text-lg ${
-							isValid
-								? "bg-neutrals-surface0 text-neutrals-text hover:text-vibrant-orchid cursor-pointer hover:opacity-90"
-								: "bg-neutrals-surface0 text-neutrals-text opacity-40"
+							!isValid
+								? "bg-neutrals-surface0 text-neutrals-text cursor-default opacity-40"
+								: isSubmitting
+									? "bg-neutrals-surface0 text-neutrals-text cursor-default opacity-70"
+									: "bg-neutrals-surface0 text-neutrals-text hover:text-vibrant-orchid cursor-pointer hover:opacity-90"
 						}`}
 					>
-						Continue
+						{isSubmitting ? (
+							<div
+								className="bg-[conic-gradient(from_0deg,transparent,theme(colors.vibrant.lilac),theme(colors.vibrant.orchid),transparent)] size-4.5 animate-spin rounded-full"
+								style={{
+									mask: "radial-gradient(circle, transparent 6px, black 8px)",
+									WebkitMask:
+										"radial-gradient(circle, transparent 6px, black 8px)",
+								}}
+							></div>
+						) : (
+							<span>Continue</span>
+						)}
 					</button>
 				</form>
 			</div>
