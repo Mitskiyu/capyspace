@@ -1,6 +1,6 @@
 "use client";
 import { google, logo } from "@/assets";
-import { checkEmail, login, signUp } from "@/lib/auth";
+import { checkEmail, checkUsername, login, signUp } from "@/lib/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useMemo, useState } from "react";
@@ -12,8 +12,17 @@ type State = "email" | "signup" | "login";
 function createSchema(state: State) {
 	const schema = z.object({
 		email: z.email("Email is invalid"),
-		password: z.string().min(1, "Password is required").optional(),
-		confirm: z.string().min(1, "Please confirm your password").optional(),
+		username: z
+			.string()
+			.trim()
+			.min(1, "Username is required")
+			.max(32, "Username can not be longer than 32 characters")
+			.optional(),
+		password: z
+			.string()
+			.min(1, "Password is required")
+			.max(96, "Password can not be longer than 96 characters")
+			.optional(),
 	});
 
 	if (state === "signup") {
@@ -36,16 +45,34 @@ function createSchema(state: State) {
 			)
 			.refine(
 				(data) => {
-					if (data.password && data.confirm) {
-						return data.password === data.confirm;
+					if (data.username && data.username.length < 3) {
+						return false;
 					}
 					return true;
 				},
 				{
-					message: "Passwords do not match",
-					path: ["confirm"],
+					message: "Username must be at least 3 characters",
+					path: ["username"],
 				},
-			);
+			)
+			.superRefine(async (data, ctx) => {
+				if (data.username && data.username.length >= 3) {
+					const result = await checkUsername(data.username);
+					if (!result.ok) {
+						ctx.addIssue({
+							code: "custom",
+							message: result.error,
+							path: ["username"],
+						});
+					} else if (result.exists) {
+						ctx.addIssue({
+							code: "custom",
+							message: "Username already in use",
+							path: ["username"],
+						});
+					}
+				}
+			});
 	}
 
 	return schema;
@@ -63,7 +90,6 @@ function AuthForm() {
 		resetField,
 		setError,
 		clearErrors,
-		trigger,
 		formState: { errors, isValid, isSubmitting },
 	} = useForm<Inputs>({
 		resolver: zodResolver(schema),
@@ -85,7 +111,21 @@ function AuthForm() {
 		}
 
 		if (state === "signup") {
-			if (!data.password) return;
+			if (!data.username || !data.password) return;
+
+			const checkResult = await checkUsername(data.username);
+			if (!checkResult.ok) {
+				setError("username", { type: "manual", message: checkResult.error });
+				console.error(checkResult.error);
+				return;
+			}
+
+			if (checkResult.exists) {
+				setError("username", {
+					type: "manual",
+					message: "Username already in use",
+				});
+			}
 
 			const result = await signUp(data.email, data.password);
 
@@ -143,12 +183,12 @@ function AuthForm() {
 					onSubmit={handleSubmit(onSubmit)}
 					className="flex w-full flex-col items-center"
 				>
-					{(errors.email || errors.password || errors.confirm) && (
+					{(errors.email || errors.password || errors.username) && (
 						<div className="text-vibrant-coral mt-2 text-sm">
 							<span>
 								{errors.email?.message ||
 									errors.password?.message ||
-									errors.confirm?.message}
+									errors.username?.message}
 							</span>
 						</div>
 					)}
@@ -158,46 +198,34 @@ function AuthForm() {
 							if (state !== "email") setState("email");
 							clearErrors();
 							resetField("password");
-							resetField("confirm");
+							resetField("username");
 							register("email").onChange(e);
 						}}
 						type="text"
 						placeholder="Enter your email"
-						className={`bg-neutrals-surface0 focus:ring-vibrant-bloom h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${
-							errors.email || errors.password || errors.confirm
+						className={`bg-neutrals-surface0 focus:ring-vibrant-bloom h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${
+							errors.email || errors.password || errors.username
 								? "mt-2"
 								: "mt-4"
-						} ${state === "email" ? "ring-neutrals-overlay0" : ""} ${errors.email ? "ring-vibrant-coral" : ""}`}
+						} ${state === "email" ? "ring-neutrals-overlay0 ring-1" : "ring-0"} ${errors.email ? "ring-vibrant-coral ring-2" : ""}`}
 					/>
 
 					{state === "signup" && (
 						<>
 							<input
-								{...register("password")}
-								onChange={(e) => {
-									register("confirm").onChange(e);
-									setTimeout(() => {
-										trigger(["password", "confirm"]);
-									}, 0);
-								}}
-								type="password"
-								placeholder="Enter your password"
-								className={`bg-neutrals-surface0 focus:ring-vibrant-bloom ring-neutrals-overlay0 mt-2 h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${
-									errors.password ? "ring-vibrant-coral ring-2" : ""
+								{...register("username")}
+								type="text"
+								placeholder="Choose your username"
+								className={`bg-neutrals-surface0 focus:ring-vibrant-bloom ring-neutrals-overlay0 mt-2.5 h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${
+									errors.username ? "ring-vibrant-coral ring-2" : ""
 								}`}
 							/>
 							<input
-								{...register("confirm")}
-								onChange={(e) => {
-									register("confirm").onChange(e);
-									setTimeout(() => {
-										trigger(["password", "confirm"]);
-									}, 0);
-								}}
+								{...register("password")}
 								type="password"
-								placeholder="Confirm your password"
+								placeholder="Choose your password"
 								className={`bg-neutrals-surface0 focus:ring-vibrant-bloom ring-neutrals-overlay0 mt-1.5 h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${
-									errors.confirm ? "ring-vibrant-coral ring-2" : ""
+									errors.password ? "ring-vibrant-coral ring-2" : ""
 								}`}
 							/>
 						</>
