@@ -3,46 +3,59 @@ import { google, logo } from "@/assets";
 import { checkEmail, login, signUp } from "@/lib/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-const schema = z
-	.object({
+type State = "email" | "signup" | "login";
+
+function createSchema(state: State) {
+	const schema = z.object({
 		email: z.email("Email is invalid"),
 		password: z.string().min(1, "Password is required").optional(),
 		confirm: z.string().min(1, "Please confirm your password").optional(),
-	})
-	.refine(
-		(data) => {
-			if (data.confirm && data.password && data.password.length < 8) {
-				return false;
-			}
-			return true;
-		},
-		{
-			message: "Password must be at least 8 characters",
-			path: ["password"],
-		},
-	)
-	.refine(
-		(data) => {
-			if (data.password && data.confirm) {
-				return data.password === data.confirm;
-			}
-			return true;
-		},
-		{
-			message: "Passwords do not match",
-			path: ["confirm"],
-		},
-	);
+	});
 
-type Inputs = z.infer<typeof schema>;
-type State = "email" | "signup" | "login";
+	if (state === "signup") {
+		return schema
+			.refine(
+				(data) => {
+					if (
+						data.password &&
+						data.password.length > 0 &&
+						data.password.length < 8
+					) {
+						return false;
+					}
+					return true;
+				},
+				{
+					message: "Password must be at least 8 characters",
+					path: ["password"],
+				},
+			)
+			.refine(
+				(data) => {
+					if (data.password && data.confirm) {
+						return data.password === data.confirm;
+					}
+					return true;
+				},
+				{
+					message: "Passwords do not match",
+					path: ["confirm"],
+				},
+			);
+	}
+
+	return schema;
+}
 
 function AuthForm() {
 	const [state, setState] = useState<State>("email");
+	const schema = useMemo(() => createSchema(state), [state]);
+
+	type Inputs = z.infer<typeof schema>;
 
 	const {
 		register,
@@ -50,6 +63,7 @@ function AuthForm() {
 		resetField,
 		setError,
 		clearErrors,
+		trigger,
 		formState: { errors, isValid, isSubmitting },
 	} = useForm<Inputs>({
 		resolver: zodResolver(schema),
@@ -160,6 +174,12 @@ function AuthForm() {
 						<>
 							<input
 								{...register("password")}
+								onChange={(e) => {
+									register("confirm").onChange(e);
+									setTimeout(() => {
+										trigger(["password", "confirm"]);
+									}, 0);
+								}}
 								type="password"
 								placeholder="Enter your password"
 								className={`bg-neutrals-surface0 focus:ring-vibrant-bloom ring-neutrals-overlay0 mt-2 h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${
@@ -168,6 +188,12 @@ function AuthForm() {
 							/>
 							<input
 								{...register("confirm")}
+								onChange={(e) => {
+									register("confirm").onChange(e);
+									setTimeout(() => {
+										trigger(["password", "confirm"]);
+									}, 0);
+								}}
 								type="password"
 								placeholder="Confirm your password"
 								className={`bg-neutrals-surface0 focus:ring-vibrant-bloom ring-neutrals-overlay0 mt-1.5 h-10 w-11/12 rounded-2xl border-none px-4 py-2 text-base ring-1 transition-colors duration-300 ease-out placeholder:text-base focus:ring-2 focus:outline-none sm:h-12 sm:text-lg sm:placeholder:text-lg ${
