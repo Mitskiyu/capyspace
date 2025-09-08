@@ -23,7 +23,7 @@ type User struct {
 	ID          uuid.UUID
 	Email       string
 	Password    string
-	Username    sql.NullString
+	Username    string
 	DisplayName sql.NullString
 	Provider    string
 	ProviderID  sql.NullString
