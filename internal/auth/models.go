@@ -13,7 +13,11 @@ type EmailReq struct {
 	Email string `json:"email"`
 }
 
-type EmailRes struct {
+type UsernameReq struct {
+	Username string `json:"username"`
+}
+
+type Exists struct {
 	Exists bool `json:"exists"`
 }
 

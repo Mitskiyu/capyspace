@@ -37,6 +37,7 @@ func New(db *sql.DB, rdb *redis.Client, origins string) http.Handler {
 		w.Write([]byte("ok"))
 	})
 	r.Post("/check-email", authHandler.CheckEmail)
+	r.Post("/check-username", authHandler.CheckUsername)
 	r.Post("/register", authHandler.Register)
 	r.Post("/login", authHandler.Login)
 

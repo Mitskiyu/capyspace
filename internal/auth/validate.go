@@ -31,6 +31,16 @@ func (e EmailReq) Valid(ctx context.Context) map[string]string {
 	return problems
 }
 
+func (u UsernameReq) Valid(ctx context.Context) map[string]string {
+	problems := make(map[string]string)
+
+	if err := validUsername(u.Username); err != nil {
+		problems["username"] = err.Error()
+	}
+
+	return problems
+}
+
 func validEmail(email string) error {
 	if len(email) > 255 {
 		return fmt.Errorf("email cannot be longer than 255 chars")
@@ -38,6 +48,17 @@ func validEmail(email string) error {
 
 	if _, err := mail.ParseAddress(email); err != nil {
 		return fmt.Errorf("email is not a valid address")
+	}
+
+	return nil
+}
+
+func validUsername(username string) error {
+	if len(username) < 3 {
+		return fmt.Errorf("username cannot be less than 3 chars")
+	}
+	if len(username) > 32 {
+		return fmt.Errorf("username cannot be longer than 32 chars")
 	}
 
 	return nil

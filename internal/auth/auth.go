@@ -15,6 +15,7 @@ import (
 type Store interface {
 	CreateUser(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, error)
 	GetUserByEmail(ctx context.Context, email string) (sqlc.User, error)
+	GetUserByUsername(ctx context.Context, username string) (sqlc.User, error)
 }
 
 type Cache interface {
@@ -37,6 +38,18 @@ func NewService(store Store, cache Cache) service {
 
 func (s *service) checkEmail(ctx context.Context, email string) (bool, error) {
 	_, err := s.store.GetUserByEmail(ctx, email)
+	switch {
+	case err == nil:
+		return true, nil
+	case errors.Is(err, sql.ErrNoRows):
+		return false, nil
+	default:
+		return false, err
+	}
+}
+
+func (s *service) checkUsername(ctx context.Context, username string) (bool, error) {
+	_, err := s.store.GetUserByUsername(ctx, username)
 	switch {
 	case err == nil:
 		return true, nil
