@@ -17,6 +17,7 @@ function createSchema(state: State) {
 			.trim()
 			.min(1, "Username is required")
 			.max(32, "Username can not be longer than 32 characters")
+			.regex(/^[a-zA-Z0-9]+$/, "Username can only contain letters or numbers")
 			.optional(),
 		password: z
 			.string()
@@ -56,7 +57,11 @@ function createSchema(state: State) {
 				},
 			)
 			.superRefine(async (data, ctx) => {
-				if (data.username && data.username.length >= 3) {
+				if (
+					data.username &&
+					data.username.length >= 3 &&
+					/^[a-zA-Z0-9]+$/.test(data.username)
+				) {
 					const result = await checkUsername(data.username);
 					if (!result.ok) {
 						ctx.addIssue({
@@ -170,7 +175,7 @@ function AuthForm() {
 					className="flex w-full flex-col items-center"
 				>
 					{(errors.email || errors.password || errors.username) && (
-						<div className="text-vibrant-coral mt-2 text-sm">
+						<div className="text-vibrant-coral mt-2 text-center text-sm">
 							<span>
 								{errors.email?.message ||
 									errors.password?.message ||

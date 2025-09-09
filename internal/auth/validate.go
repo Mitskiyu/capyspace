@@ -71,6 +71,12 @@ func validUsername(username string) error {
 		return fmt.Errorf("username cannot be longer than 32 chars")
 	}
 
+	for _, c := range username {
+		if (c < 'A' || c > 'Z') && (c < 'a' || c > 'z') && (c < '0' || c > '9') {
+			return fmt.Errorf("username can only contain letters or numbers")
+		}
+	}
+
 	return nil
 }
 
