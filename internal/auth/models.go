@@ -23,6 +23,7 @@ type Exists struct {
 
 type RegisterReq struct {
 	Credentials
+	Username string `json:"username"`
 }
 
 type LoginReq struct {

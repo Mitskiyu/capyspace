@@ -69,7 +69,7 @@ func (h *handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	if created, _, err := h.service.register(ctx, req.Email, req.Password); err != nil {
+	if created, _, err := h.service.register(ctx, req.Email, req.Password, req.Username); err != nil {
 		log.Printf("%v at %s", err, r.URL.Path)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return

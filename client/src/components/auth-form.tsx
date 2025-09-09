@@ -113,21 +113,7 @@ function AuthForm() {
 		if (state === "signup") {
 			if (!data.username || !data.password) return;
 
-			const checkResult = await checkUsername(data.username);
-			if (!checkResult.ok) {
-				setError("username", { type: "manual", message: checkResult.error });
-				console.error(checkResult.error);
-				return;
-			}
-
-			if (checkResult.exists) {
-				setError("username", {
-					type: "manual",
-					message: "Username already in use",
-				});
-			}
-
-			const result = await signUp(data.email, data.password);
+			const result = await signUp(data.email, data.password, data.username);
 
 			if (!result.ok) {
 				setError("password", { type: "manual", message: result.error });

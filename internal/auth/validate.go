@@ -21,6 +21,16 @@ func (c Credentials) Valid(ctx context.Context) map[string]string {
 	return problems
 }
 
+func (r RegisterReq) Valid(ctx context.Context) map[string]string {
+	problems := r.Credentials.Valid(ctx)
+
+	if err := validUsername(r.Username); err != nil {
+		problems["username"] = err.Error()
+	}
+
+	return problems
+}
+
 func (e EmailReq) Valid(ctx context.Context) map[string]string {
 	problems := make(map[string]string)
 
