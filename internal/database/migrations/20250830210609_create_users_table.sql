@@ -5,7 +5,7 @@ CREATE TABLE users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(96) NOT NULL,
     username VARCHAR(32) UNIQUE NOT NULL,
-    display_name VARCHAR(32),
+    display_name VARCHAR(32) NOT NULL,
     provider VARCHAR(20) NOT NULL DEFAULT 'email',
     provider_id VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),

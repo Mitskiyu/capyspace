@@ -24,7 +24,7 @@ type User struct {
 	Email       string
 	Password    string
 	Username    string
-	DisplayName sql.NullString
+	DisplayName string
 	Provider    string
 	ProviderID  sql.NullString
 	CreatedAt   time.Time

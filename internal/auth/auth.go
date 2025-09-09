@@ -63,10 +63,11 @@ func (s *service) checkUsername(ctx context.Context, username string) (bool, err
 func (s *service) register(ctx context.Context, email, password, username string) (bool, *sqlc.User, error) {
 	password = hashPassword(password)
 	params := sqlc.CreateUserParams{
-		ID:       uuid.New(),
-		Email:    email,
-		Password: password,
-		Username: username,
+		ID:          uuid.New(),
+		Email:       email,
+		Password:    password,
+		Username:    username,
+		DisplayName: username,
 	}
 
 	user, err := s.store.CreateUser(ctx, params)
