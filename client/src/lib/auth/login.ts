@@ -5,11 +5,8 @@ import { delay } from "../util/delay";
 type Result = { ok: true; success: boolean } | { ok: false; error: string };
 
 const schema = z.object({
-	message: z.string(),
-	user: z.object({
-		id: z.uuid(),
-		email: z.email(),
-	}),
+	success: z.boolean(),
+	id: z.uuid(),
 });
 
 export async function login(email: string, password: string): Promise<Result> {

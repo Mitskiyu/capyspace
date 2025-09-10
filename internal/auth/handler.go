@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Mitskiyu/capyspace/internal/user"
 	"github.com/Mitskiyu/capyspace/internal/util"
 )
 
@@ -58,11 +57,8 @@ func (h *handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	if !ok {
 		res := LoginRes{
-			Message: "Login failed",
-			User: user.Info{
-				Id:    "Invalid",
-				Email: req.Email,
-			},
+			Success: false,
+			Id:      u.ID.String(),
 		}
 		if err := util.Encode(w, http.StatusUnauthorized, res); err != nil {
 			log.Printf("%v at %s", err, r.URL.Path)
@@ -81,11 +77,8 @@ func (h *handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res := LoginRes{
-		Message: "Login successful",
-		User: user.Info{
-			Id:    u.ID.String(),
-			Email: u.Email,
-		},
+		Success: true,
+		Id:      u.ID.String(),
 	}
 
 	http.SetCookie(w, cookie)

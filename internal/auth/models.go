@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 
-	"github.com/Mitskiyu/capyspace/internal/user"
 	"github.com/Mitskiyu/capyspace/internal/util"
 )
 
@@ -22,8 +21,8 @@ type LoginReq struct {
 }
 
 type LoginRes struct {
-	Message string    `json:"message"`
-	User    user.Info `json:"user"`
+	Success bool   `json:"success"`
+	Id      string `json:"id"`
 }
 
 func (c Credentials) Valid(ctx context.Context) map[string]string {

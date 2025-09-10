@@ -18,11 +18,6 @@ type Exists struct {
 	Exists bool `json:"exists"`
 }
 
-type Info struct {
-	Id    string `json:"id"`
-	Email string `json:"email"`
-}
-
 func (e EmailReq) Valid(ctx context.Context) map[string]string {
 	problems := make(map[string]string)
 
