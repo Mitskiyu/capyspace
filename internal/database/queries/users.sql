@@ -10,4 +10,4 @@ WHERE email = $1;
 
 -- name: GetUserByUsername :one
 SELECT * FROM users
-WHERE username = $1;
+WHERE username_lower = lower($1);

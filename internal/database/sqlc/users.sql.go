@@ -15,7 +15,7 @@ const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     id, email, password, username, display_name
 ) VALUES ($1, $2, $3, $4, $5)
-RETURNING id, email, password, username, display_name, provider, provider_id, created_at, modified_at
+RETURNING id, email, password, username, username_lower, display_name, provider, provider_id, created_at, modified_at
 `
 
 type CreateUserParams struct {
@@ -40,6 +40,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.Password,
 		&i.Username,
+		&i.UsernameLower,
 		&i.DisplayName,
 		&i.Provider,
 		&i.ProviderID,
@@ -50,7 +51,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, password, username, display_name, provider, provider_id, created_at, modified_at FROM users
+SELECT id, email, password, username, username_lower, display_name, provider, provider_id, created_at, modified_at FROM users
 WHERE email = $1
 `
 
@@ -62,6 +63,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Email,
 		&i.Password,
 		&i.Username,
+		&i.UsernameLower,
 		&i.DisplayName,
 		&i.Provider,
 		&i.ProviderID,
@@ -72,18 +74,19 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, email, password, username, display_name, provider, provider_id, created_at, modified_at FROM users
-WHERE username = $1
+SELECT id, email, password, username, username_lower, display_name, provider, provider_id, created_at, modified_at FROM users
+WHERE username_lower = lower($1)
 `
 
-func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
+func (q *Queries) GetUserByUsername(ctx context.Context, lower string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByUsername, lower)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
 		&i.Password,
 		&i.Username,
+		&i.UsernameLower,
 		&i.DisplayName,
 		&i.Provider,
 		&i.ProviderID,

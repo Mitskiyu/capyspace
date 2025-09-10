@@ -20,13 +20,14 @@ type Space struct {
 }
 
 type User struct {
-	ID          uuid.UUID
-	Email       string
-	Password    string
-	Username    string
-	DisplayName string
-	Provider    string
-	ProviderID  sql.NullString
-	CreatedAt   time.Time
-	ModifiedAt  time.Time
+	ID            uuid.UUID
+	Email         string
+	Password      string
+	Username      string
+	UsernameLower sql.NullString
+	DisplayName   string
+	Provider      string
+	ProviderID    sql.NullString
+	CreatedAt     time.Time
+	ModifiedAt    time.Time
 }
