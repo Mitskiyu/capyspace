@@ -13,7 +13,7 @@ export async function login(email: string, password: string): Promise<Result> {
 	const url = env.NEXT_PUBLIC_API_URL;
 
 	try {
-		const req = fetch(`${url}/login`, {
+		const req = fetch(`${url}/sessions`, {
 			method: "POST",
 			credentials: "include",
 			headers: {

@@ -12,7 +12,7 @@ export async function checkUsername(username: string): Promise<Result> {
 	const url = env.NEXT_PUBLIC_API_URL;
 
 	try {
-		const req = fetch(`${url}/check-username`, {
+		const req = fetch(`${url}/users/check/username`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",

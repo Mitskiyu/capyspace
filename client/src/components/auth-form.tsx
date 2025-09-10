@@ -1,6 +1,7 @@
 "use client";
 import { google, logo } from "@/assets";
-import { checkEmail, checkUsername, login, signUp } from "@/lib/auth";
+import { login, signUp } from "@/lib/auth";
+import { checkEmail, checkUsername } from "@/lib/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useMemo, useState } from "react";

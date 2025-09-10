@@ -11,7 +11,7 @@ export async function signUp(
 	const url = env.NEXT_PUBLIC_API_URL;
 
 	try {
-		const req = fetch(`${url}/register`, {
+		const req = fetch(`${url}/users`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ email, password, username }),

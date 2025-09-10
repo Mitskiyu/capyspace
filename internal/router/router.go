@@ -38,14 +38,14 @@ func New(db *sql.DB, rdb *redis.Client, origins string) http.Handler {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("ok"))
 	})
-	r.Post("/check-email", userHandler.CheckEmail)
-	r.Post("/check-username", userHandler.CheckUsername)
-	r.Post("/register", authHandler.Register)
-	r.Post("/login", authHandler.Login)
+	r.Post("/users/check/email", userHandler.CheckEmail)
+	r.Post("/users/check/username", userHandler.CheckUsername)
+	r.Post("/users", authHandler.Register)
+	r.Post("/sessions", authHandler.Login)
 
 	r.Group(func(r chi.Router) {
 		r.Use(authHandler.SessionMiddleware)
-		r.Get("/create-space", spaceHandler.CreateSpace)
+		r.Post("/spaces", spaceHandler.CreateSpace)
 	})
 
 	return r

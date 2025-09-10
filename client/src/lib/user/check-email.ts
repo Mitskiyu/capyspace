@@ -12,7 +12,7 @@ export async function checkEmail(email: string): Promise<Result> {
 	const url = env.NEXT_PUBLIC_API_URL;
 
 	try {
-		const req = fetch(`${url}/check-email`, {
+		const req = fetch(`${url}/users/check/email`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
