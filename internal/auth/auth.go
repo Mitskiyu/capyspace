@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Mitskiyu/capyspace/internal/database/sqlc"
+	"github.com/Mitskiyu/capyspace/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -33,30 +34,6 @@ func NewService(store Store, cache Cache) service {
 	return service{
 		store: store,
 		cache: cache,
-	}
-}
-
-func (s *service) checkEmail(ctx context.Context, email string) (bool, error) {
-	_, err := s.store.GetUserByEmail(ctx, email)
-	switch {
-	case err == nil:
-		return true, nil
-	case errors.Is(err, sql.ErrNoRows):
-		return false, nil
-	default:
-		return false, err
-	}
-}
-
-func (s *service) checkUsername(ctx context.Context, username string) (bool, error) {
-	_, err := s.store.GetUserByUsername(ctx, username)
-	switch {
-	case err == nil:
-		return true, nil
-	case errors.Is(err, sql.ErrNoRows):
-		return false, nil
-	default:
-		return false, err
 	}
 }
 
@@ -109,7 +86,7 @@ func (s *service) login(ctx context.Context, email, password string) (bool, *sql
 }
 
 func (s *service) sessionMiddleware(ctx context.Context, sessionId string) (string, bool, error) {
-	if err := validSessionId(sessionId); err != nil {
+	if err := util.ValidSessionId(sessionId); err != nil {
 		return "", false, fmt.Errorf("failed to validate session id %s: %w", sessionId, err)
 	}
 
