@@ -58,6 +58,11 @@ func (h *handler) GetSpace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if space.IsPrivate {
+		http.Error(w, "Space is private", http.StatusForbidden)
+		return
+	}
+
 	res := SpaceRes{
 		Id:        space.ID.String(),
 		IsPrivate: space.IsPrivate,
