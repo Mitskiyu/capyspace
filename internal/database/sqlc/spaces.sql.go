@@ -35,3 +35,23 @@ func (q *Queries) CreateSpace(ctx context.Context, arg CreateSpaceParams) (Space
 	)
 	return i, err
 }
+
+const getSpaceByUsername = `-- name: GetSpaceByUsername :one
+SELECT s.id, s.user_id, s.is_private, s.created_at, s.modified_at
+FROM spaces s
+JOIN users u ON s.user_id = u.id
+WHERE u.username = $1
+`
+
+func (q *Queries) GetSpaceByUsername(ctx context.Context, username string) (Space, error) {
+	row := q.db.QueryRowContext(ctx, getSpaceByUsername, username)
+	var i Space
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.IsPrivate,
+		&i.CreatedAt,
+		&i.ModifiedAt,
+	)
+	return i, err
+}

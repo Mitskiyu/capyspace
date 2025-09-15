@@ -3,6 +3,9 @@ package space
 import (
 	"log"
 	"net/http"
+
+	"github.com/Mitskiyu/capyspace/internal/util"
+	"github.com/go-chi/chi/v5"
 )
 
 type handler struct {
@@ -26,7 +29,7 @@ func (h *handler) CreateSpace(w http.ResponseWriter, r *http.Request) {
 
 	created, _, err := h.service.createSpace(r.Context(), userId)
 	if err != nil {
-		log.Printf("space already exists for %v", userId)
+		log.Printf("%v at %s", err, r.URL.Path)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -38,4 +41,27 @@ func (h *handler) CreateSpace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *handler) GetSpace(w http.ResponseWriter, r *http.Request) {
+	username := chi.URLParam(r, "username")
+
+	found, space, err := h.service.getSpace(r.Context(), username)
+	if err != nil {
+		log.Printf("%v at %s", err, r.URL.Path)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if !found {
+		http.Error(w, "Space not found", http.StatusNotFound)
+		return
+	}
+
+	res := SpaceRes{
+		Id:        space.ID.String(),
+		IsPrivate: space.IsPrivate,
+	}
+
+	util.Encode(w, http.StatusOK, res)
 }

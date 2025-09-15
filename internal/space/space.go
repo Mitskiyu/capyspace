@@ -2,7 +2,9 @@ package space
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"log"
 
 	"github.com/Mitskiyu/capyspace/internal/database/sqlc"
 	"github.com/google/uuid"
@@ -11,6 +13,7 @@ import (
 
 type Store interface {
 	CreateSpace(ctx context.Context, arg sqlc.CreateSpaceParams) (sqlc.Space, error)
+	GetSpaceByUsername(ctx context.Context, username string) (sqlc.Space, error)
 }
 
 type service struct {
@@ -25,6 +28,7 @@ func NewService(store Store) service {
 
 func (s *service) createSpace(ctx context.Context, userId string) (bool, sqlc.Space, error) {
 	parsedId, err := uuid.Parse(userId)
+	log.Printf("Creating space for user ID: %s", parsedId.String())
 	if err != nil {
 		return false, sqlc.Space{}, fmt.Errorf("failed to parse uuid: %w", err)
 	}
@@ -40,6 +44,18 @@ func (s *service) createSpace(ctx context.Context, userId string) (bool, sqlc.Sp
 			return false, sqlc.Space{}, nil
 		}
 		return false, sqlc.Space{}, fmt.Errorf("failed to create space: %w", err)
+	}
+
+	return true, space, nil
+}
+
+func (s *service) getSpace(ctx context.Context, username string) (bool, sqlc.Space, error) {
+	space, err := s.store.GetSpaceByUsername(ctx, username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, sqlc.Space{}, fmt.Errorf("user: %s does not have a space: %w", username, err)
+		}
+		return false, sqlc.Space{}, fmt.Errorf("failed to get space: %w", err)
 	}
 
 	return true, space, nil

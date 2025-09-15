@@ -43,6 +43,7 @@ func New(db *sql.DB, rdb *redis.Client, origins string) http.Handler {
 	r.Post("/users", authHandler.Register)
 	r.Post("/sessions", authHandler.Login)
 
+	r.Get("/spaces/{username}", spaceHandler.GetSpace)
 	r.Group(func(r chi.Router) {
 		r.Use(authHandler.SessionMiddleware)
 		r.Post("/spaces", spaceHandler.CreateSpace)
