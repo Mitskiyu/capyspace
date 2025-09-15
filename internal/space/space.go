@@ -53,7 +53,7 @@ func (s *service) getSpace(ctx context.Context, username string) (bool, sqlc.Spa
 	space, err := s.store.GetSpaceByUsername(ctx, username)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return false, sqlc.Space{}, fmt.Errorf("user: %s does not have a space: %w", username, err)
+			return false, sqlc.Space{}, nil
 		}
 		return false, sqlc.Space{}, fmt.Errorf("failed to get space: %w", err)
 	}
