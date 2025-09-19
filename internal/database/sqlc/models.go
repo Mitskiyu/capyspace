@@ -6,6 +6,7 @@ package sqlc
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,4 +31,16 @@ type User struct {
 	ProviderID    sql.NullString
 	CreatedAt     time.Time
 	ModifiedAt    time.Time
+}
+
+type Widget struct {
+	ID         uuid.UUID
+	SpaceID    uuid.UUID
+	Type       string
+	XPos       int32
+	YPos       int32
+	Minimized  bool
+	Data       json.RawMessage
+	CreatedAt  time.Time
+	ModifiedAt time.Time
 }
