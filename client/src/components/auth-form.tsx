@@ -1,9 +1,11 @@
 "use client";
 import { google, logo } from "@/assets";
 import { login, signUp } from "@/lib/auth";
+import { createSpace } from "@/lib/space";
 import { checkEmail, checkUsername } from "@/lib/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -87,6 +89,7 @@ function createSchema(state: State) {
 function AuthForm() {
 	const [state, setState] = useState<State>("email");
 	const schema = useMemo(() => createSchema(state), [state]);
+	const router = useRouter();
 
 	type Inputs = z.infer<typeof schema>;
 
@@ -120,14 +123,27 @@ function AuthForm() {
 			if (!data.username || !data.password) return;
 
 			const result = await signUp(data.email, data.password, data.username);
-
 			if (!result.ok) {
 				setError("password", { type: "manual", message: result.error });
 				console.error(result.error);
 				return;
 			}
 
-			// call login -> redirect!
+			const lresult = await login(data.email, data.password);
+			if (!lresult.ok) {
+				setError("password", { type: "manual", message: lresult.error });
+				console.error(lresult.error);
+				return;
+			}
+
+			const sresult = await createSpace();
+			if (!sresult.ok) {
+				setError("root", { type: "manual", message: sresult.error });
+				console.error(sresult.error);
+				return;
+			}
+
+			router.push(`/${data.username}/space`);
 		}
 
 		if (state === "login") {
