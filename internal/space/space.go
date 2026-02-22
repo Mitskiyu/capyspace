@@ -14,6 +14,7 @@ import (
 type Store interface {
 	CreateSpace(ctx context.Context, arg sqlc.CreateSpaceParams) (sqlc.Space, error)
 	GetSpaceByUsername(ctx context.Context, username string) (sqlc.Space, error)
+	GetSpaceByUserId(ctx context.Context, userId uuid.UUID) (sqlc.Space, error)
 }
 
 type service struct {
@@ -51,6 +52,23 @@ func (s *service) createSpace(ctx context.Context, userId string) (bool, sqlc.Sp
 
 func (s *service) getSpace(ctx context.Context, username string) (bool, sqlc.Space, error) {
 	space, err := s.store.GetSpaceByUsername(ctx, username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, sqlc.Space{}, nil
+		}
+		return false, sqlc.Space{}, fmt.Errorf("failed to get space: %w", err)
+	}
+
+	return true, space, nil
+}
+
+func (s *service) spaceMiddleware(ctx context.Context, userId string) (bool, sqlc.Space, error) {
+	parsedId, err := uuid.Parse(userId)
+	if err != nil {
+		return false, sqlc.Space{}, fmt.Errorf("failed to parse uuid: %w", err)
+	}
+
+	space, err := s.store.GetSpaceByUserId(ctx, parsedId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, sqlc.Space{}, nil

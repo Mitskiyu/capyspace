@@ -9,3 +9,8 @@ SELECT s.*
 FROM spaces s
 JOIN users u ON s.user_id = u.id
 WHERE u.username = $1;
+
+-- name: GetSpaceByUserId :one
+SELECT *
+FROM spaces 
+WHERE spaces.user_id = $1;
