@@ -1,6 +1,7 @@
 package space
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -46,7 +47,8 @@ func (h *handler) CreateSpace(w http.ResponseWriter, r *http.Request) {
 func (h *handler) GetSpace(w http.ResponseWriter, r *http.Request) {
 	username := chi.URLParam(r, "username")
 
-	found, space, err := h.service.getSpace(r.Context(), username)
+	ctx := r.Context()
+	found, space, err := h.service.getSpace(ctx, username)
 	if err != nil {
 		log.Printf("%v at %s", err, r.URL.Path)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -57,15 +59,20 @@ func (h *handler) GetSpace(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Space not found", http.StatusNotFound)
 		return
 	}
-
-	if space.IsPrivate {
-		http.Error(w, "Space is private", http.StatusForbidden)
-		return
-	}
-
 	res := SpaceRes{
 		Id:        space.ID.String(),
 		IsPrivate: space.IsPrivate,
+	}
+
+	if space.IsPrivate {
+		if space.UserID.String() == ctx.Value("user_id") {
+			fmt.Print(ctx.Value("user_id"))
+			util.Encode(w, http.StatusOK, res)
+			return
+		} else {
+			http.Error(w, "Space is private", http.StatusForbidden)
+			return
+		}
 	}
 
 	util.Encode(w, http.StatusOK, res)
