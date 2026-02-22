@@ -1,12 +1,15 @@
 import { getSpace } from "@/lib/space";
+import { cookies } from "next/headers";
 
 export default async function Page({
 	params,
 }: {
 	params: { username: string };
 }) {
-	const { username } = await params;
-	const result = await getSpace(username);
+	const { username } = params;
+	const cookieStore = await cookies();
+	const sessionId = cookieStore.get("session_id")?.value;
+	const result = await getSpace(username, sessionId);
 
 	switch (result.status) {
 		case "not_found":

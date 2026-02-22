@@ -7,13 +7,19 @@ type Result =
 	| { status: "private" }
 	| { status: "error"; message: string };
 
-export async function getSpace(username: string): Promise<Result> {
+export async function getSpace(
+	username: string,
+	sessionId: string | undefined,
+): Promise<Result> {
 	const url = env.NEXT_PUBLIC_API_URL;
 
 	try {
 		const res = await fetch(`${url}/spaces/${username}`, {
 			method: "GET",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				...(sessionId && { Cookie: `session_id=${sessionId}` }),
+			},
 			credentials: "include",
 		});
 
