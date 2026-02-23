@@ -1,7 +1,6 @@
 package widget
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -43,5 +42,5 @@ func (h *handler) CreateWidget(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Print(widget)
+	util.Encode(w, http.StatusCreated, widget)
 }
