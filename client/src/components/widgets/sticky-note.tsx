@@ -1,3 +1,4 @@
+"use client";
 import { ArrowsOutSimpleIcon, MinusIcon, XIcon } from "@phosphor-icons/react";
 import { motion, useDragControls } from "motion/react";
 
