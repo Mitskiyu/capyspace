@@ -6,7 +6,7 @@ export default async function Page({
 }: {
 	params: { username: string };
 }) {
-	const { username } = params;
+	const { username } = await params;
 	const cookieStore = await cookies();
 	const sessionId = cookieStore.get("session_id")?.value;
 	const result = await getSpace(username, sessionId);
