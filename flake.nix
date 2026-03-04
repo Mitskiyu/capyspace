@@ -19,6 +19,7 @@
           air
           sqlc
           goose
+          docker-compose
         ];
 
         # disable cgo
