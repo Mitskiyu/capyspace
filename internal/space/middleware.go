@@ -12,16 +12,16 @@ func (h *handler) SpaceMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		userIdRaw := ctx.Value("user_id")
-		userId, ok := userIdRaw.(string)
+		userID, ok := userIdRaw.(string)
 		if !ok {
 			log.Printf("mismatched type for user_id: %T", userIdRaw)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 
-		spaceId := chi.URLParam(r, "spaceId")
+		spaceID := chi.URLParam(r, "spaceID")
 
-		found, space, err := h.service.spaceMiddleware(ctx, userId)
+		found, space, err := h.service.spaceMiddleware(ctx, userID)
 		if err != nil {
 			log.Printf("%v at %s", err, r.URL.Path)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -33,7 +33,7 @@ func (h *handler) SpaceMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if space.ID.String() != spaceId {
+		if space.ID.String() != spaceID {
 			http.Error(w, "Unauthorized", http.StatusForbidden)
 			return
 		}

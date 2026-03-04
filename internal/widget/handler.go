@@ -35,7 +35,7 @@ func (h *handler) CreateWidget(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	widget, err := h.service.createWidget(ctx, req.Id, space.ID, string(req.Type), req.XPos, req.YPos, req.Minimized, req.Data)
+	widget, err := h.service.createWidget(ctx, req.ID, space.ID, string(req.Type), req.XPos, req.YPos, req.Minimized, req.Data)
 	if err != nil {
 		log.Printf("%v at %s", err, r.URL.Path)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

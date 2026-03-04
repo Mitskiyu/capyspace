@@ -24,10 +24,10 @@ func NewService(store Store) service {
 	}
 }
 
-func (s *service) createWidget(ctx context.Context, id, spaceId uuid.UUID, widgetType string, xPos, yPos int32, minimized bool, data json.RawMessage) (sqlc.Widget, error) {
+func (s *service) createWidget(ctx context.Context, id, spaceID uuid.UUID, widgetType string, xPos, yPos int32, minimized bool, data json.RawMessage) (sqlc.Widget, error) {
 	params := sqlc.CreateWidgetParams{
 		ID:        id,
-		SpaceID:   spaceId,
+		SpaceID:   spaceID,
 		Type:      widgetType,
 		XPos:      xPos,
 		YPos:      yPos,

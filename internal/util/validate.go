@@ -47,13 +47,13 @@ func ValidPassword(password string) error {
 	return nil
 }
 
-func ValidSessionId(sessionId string) error {
+func ValidSessionID(sessionID string) error {
 	// 15 bytes = 20 base64 chars
-	if len(sessionId) != 20 {
+	if len(sessionID) != 20 {
 		return fmt.Errorf("invalid session id length")
 	}
 
-	decoded, err := base64.StdEncoding.DecodeString(sessionId)
+	decoded, err := base64.StdEncoding.DecodeString(sessionID)
 	if err != nil {
 		return err
 	}

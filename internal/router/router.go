@@ -54,7 +54,7 @@ func New(db *sql.DB, rdb *redis.Client, origins string) http.Handler {
 		r.Post("/spaces", spaceHandler.CreateSpace)
 		r.Group(func(r chi.Router) {
 			r.Use(spaceHandler.SpaceMiddleware)
-			r.Post("/spaces/{spaceId}/widgets", widgetHandler.CreateWidget)
+			r.Post("/spaces/{spaceID}/widgets", widgetHandler.CreateWidget)
 		})
 	})
 

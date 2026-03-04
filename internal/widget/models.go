@@ -14,7 +14,7 @@ const (
 )
 
 type CreateWidgetReq struct {
-	Id        uuid.UUID       `json:"id"`
+	ID        uuid.UUID       `json:"id"`
 	Type      Type            `json:"type"`
 	XPos      int32           `json:"x_pos"`
 	YPos      int32           `json:"y_pos"`

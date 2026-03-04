@@ -22,7 +22,7 @@ type LoginReq struct {
 
 type LoginRes struct {
 	Success bool   `json:"success"`
-	Id      string `json:"id"`
+	ID      string `json:"id"`
 }
 
 func (c Credentials) Valid(ctx context.Context) map[string]string {

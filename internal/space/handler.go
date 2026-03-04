@@ -21,14 +21,14 @@ func NewHandler(service service) *handler {
 
 func (h *handler) CreateSpace(w http.ResponseWriter, r *http.Request) {
 	userIdRaw := r.Context().Value("user_id")
-	userId, ok := userIdRaw.(string)
+	userID, ok := userIdRaw.(string)
 	if !ok {
 		log.Printf("mismatched type for user_id: %T", userIdRaw)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	created, _, err := h.service.createSpace(r.Context(), userId)
+	created, _, err := h.service.createSpace(r.Context(), userID)
 	if err != nil {
 		log.Printf("%v at %s", err, r.URL.Path)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -36,7 +36,7 @@ func (h *handler) CreateSpace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !created {
-		log.Println("space already exists for: &s", userId)
+		log.Println("space already exists for: &s", userID)
 		http.Error(w, "Space already exists", http.StatusConflict)
 		return
 	}
@@ -60,7 +60,7 @@ func (h *handler) GetSpace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res := SpaceRes{
-		Id:        space.ID.String(),
+		ID:        space.ID.String(),
 		IsPrivate: space.IsPrivate,
 	}
 

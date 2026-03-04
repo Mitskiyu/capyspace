@@ -48,7 +48,7 @@ func (h *handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	ok, u, sessionId, err := h.service.login(ctx, req.Email, req.Password)
+	ok, u, sessionID, err := h.service.login(ctx, req.Email, req.Password)
 	if err != nil {
 		log.Printf("%v at %s", err, r.URL.Path)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -58,7 +58,7 @@ func (h *handler) Login(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		res := LoginRes{
 			Success: false,
-			Id:      u.ID.String(),
+			ID:      u.ID.String(),
 		}
 		if err := util.Encode(w, http.StatusUnauthorized, res); err != nil {
 			log.Printf("%v at %s", err, r.URL.Path)
@@ -68,7 +68,7 @@ func (h *handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	cookie := &http.Cookie{
 		Name:     "session_id",
-		Value:    sessionId,
+		Value:    sessionID,
 		HttpOnly: true,
 		Secure:   r.TLS != nil,
 		SameSite: http.SameSiteLaxMode,
@@ -78,7 +78,7 @@ func (h *handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	res := LoginRes{
 		Success: true,
-		Id:      u.ID.String(),
+		ID:      u.ID.String(),
 	}
 
 	http.SetCookie(w, cookie)

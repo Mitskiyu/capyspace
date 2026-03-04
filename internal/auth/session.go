@@ -5,10 +5,10 @@ import (
 	"encoding/base64"
 )
 
-func createSessionId() string {
+func createSessionID() string {
 	token := make([]byte, 15)
 	rand.Read(token)
-	sessionId := base64.StdEncoding.EncodeToString(token)
+	sessionID := base64.StdEncoding.EncodeToString(token)
 
-	return sessionId
+	return sessionID
 }

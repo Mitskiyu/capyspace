@@ -37,19 +37,19 @@ func PingRedis(ctx context.Context, rdb *redis.Client) error {
 	return nil
 }
 
-func (c *cache) SetSession(ctx context.Context, sessionId, userId string, exp time.Duration) error {
-	return c.rdb.Set(ctx, sessionId, userId, exp).Err()
+func (c *cache) SetSession(ctx context.Context, sessionID, userID string, exp time.Duration) error {
+	return c.rdb.Set(ctx, sessionID, userID, exp).Err()
 }
 
-func (c *cache) GetSession(ctx context.Context, sessionId string) (string, time.Duration, error) {
+func (c *cache) GetSession(ctx context.Context, sessionID string) (string, time.Duration, error) {
 	pipe := c.rdb.Pipeline()
-	cmd := pipe.Get(ctx, sessionId)
-	ttl := pipe.TTL(ctx, sessionId)
+	cmd := pipe.Get(ctx, sessionID)
+	ttl := pipe.TTL(ctx, sessionID)
 	_, err := pipe.Exec(ctx)
 
 	return cmd.Val(), ttl.Val(), err
 }
 
-func (c *cache) UpdateSessionTTL(ctx context.Context, sessionId string, exp time.Duration) error {
-	return c.rdb.Expire(ctx, sessionId, exp).Err()
+func (c *cache) UpdateSessionTTL(ctx context.Context, sessionID string, exp time.Duration) error {
+	return c.rdb.Expire(ctx, sessionID, exp).Err()
 }

@@ -14,7 +14,7 @@ import (
 type Store interface {
 	CreateSpace(ctx context.Context, arg sqlc.CreateSpaceParams) (sqlc.Space, error)
 	GetSpaceByUsername(ctx context.Context, username string) (sqlc.Space, error)
-	GetSpaceByUserId(ctx context.Context, userId uuid.UUID) (sqlc.Space, error)
+	GetSpaceByUserID(ctx context.Context, userID uuid.UUID) (sqlc.Space, error)
 }
 
 type service struct {
@@ -27,16 +27,16 @@ func NewService(store Store) service {
 	}
 }
 
-func (s *service) createSpace(ctx context.Context, userId string) (bool, sqlc.Space, error) {
-	parsedId, err := uuid.Parse(userId)
-	log.Printf("Creating space for user ID: %s", parsedId.String())
+func (s *service) createSpace(ctx context.Context, userID string) (bool, sqlc.Space, error) {
+	parsedID, err := uuid.Parse(userID)
+	log.Printf("Creating space for user ID: %s", parsedID.String())
 	if err != nil {
 		return false, sqlc.Space{}, fmt.Errorf("failed to parse uuid: %w", err)
 	}
 
 	params := sqlc.CreateSpaceParams{
 		ID:     uuid.New(),
-		UserID: parsedId,
+		UserID: parsedID,
 	}
 
 	space, err := s.store.CreateSpace(ctx, params)
@@ -62,13 +62,13 @@ func (s *service) getSpace(ctx context.Context, username string) (bool, sqlc.Spa
 	return true, space, nil
 }
 
-func (s *service) spaceMiddleware(ctx context.Context, userId string) (bool, sqlc.Space, error) {
-	parsedId, err := uuid.Parse(userId)
+func (s *service) spaceMiddleware(ctx context.Context, userID string) (bool, sqlc.Space, error) {
+	parsedID, err := uuid.Parse(userID)
 	if err != nil {
 		return false, sqlc.Space{}, fmt.Errorf("failed to parse uuid: %w", err)
 	}
 
-	space, err := s.store.GetSpaceByUserId(ctx, parsedId)
+	space, err := s.store.GetSpaceByUserID(ctx, parsedID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false, sqlc.Space{}, nil

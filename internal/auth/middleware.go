@@ -16,7 +16,7 @@ func (h *handler) SessionMiddleware(next http.Handler) http.Handler {
 		}
 
 		ctx := r.Context()
-		userId, expiring, err := h.service.sessionMiddleware(ctx, cookie.Value)
+		userID, expiring, err := h.service.sessionMiddleware(ctx, cookie.Value)
 		if err != nil {
 			log.Printf("%v at %s", err, r.URL.Path)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -38,7 +38,7 @@ func (h *handler) SessionMiddleware(next http.Handler) http.Handler {
 			http.SetCookie(w, refreshed)
 		}
 
-		ctx = context.WithValue(ctx, "user_id", userId)
+		ctx = context.WithValue(ctx, "user_id", userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -52,7 +52,7 @@ func (h *handler) GuestMiddleware(next http.Handler) http.Handler {
 		}
 
 		ctx := r.Context()
-		userId, expiring, err := h.service.sessionMiddleware(ctx, cookie.Value)
+		userID, expiring, err := h.service.sessionMiddleware(ctx, cookie.Value)
 		if err != nil {
 			log.Printf("%v at %s", err, r.URL.Path)
 			next.ServeHTTP(w, r)
@@ -73,7 +73,7 @@ func (h *handler) GuestMiddleware(next http.Handler) http.Handler {
 			http.SetCookie(w, refreshed)
 		}
 
-		ctx = context.WithValue(ctx, "user_id", userId)
+		ctx = context.WithValue(ctx, "user_id", userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
