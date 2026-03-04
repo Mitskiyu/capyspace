@@ -16,7 +16,15 @@
         packages = with pkgs; [
           bun
           go
+          air
+          sqlc
+          goose
         ];
+
+        # disable cgo
+        env = {
+          CGO_ENABLED = "0";
+        };
       };
     });
   };
