@@ -9,14 +9,15 @@
     self,
     nixpkgs,
   }: let
-    system = "aarch64-darwin";
-    pkgs = nixpkgs.legacyPackages.${system};
+    forAllSystems = function: nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed (system: function nixpkgs.legacyPackages.${system});
   in {
-    devShells.${system}.default = pkgs.mkShell {
-      packages = with pkgs; [
-        bun
-        go
-      ];
-    };
+    devShells = forAllSystems (pkgs: {
+      default = pkgs.mkShellNoCC {
+        packages = with pkgs; [
+          bun
+          go
+        ];
+      };
+    });
   };
 }
