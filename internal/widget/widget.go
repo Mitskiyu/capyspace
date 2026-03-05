@@ -11,7 +11,7 @@ import (
 
 type Store interface {
 	CreateWidget(ctx context.Context, arg sqlc.CreateWidgetParams) (sqlc.Widget, error)
-	UpdateWidgetData(ctx context.Context, arg sqlc.UpdateWidgetDataParams) (sqlc.Widget, error)
+	UpdateWidget(ctx context.Context, arg sqlc.UpdateWidgetParams) (sqlc.Widget, error)
 }
 
 type service struct {
@@ -38,6 +38,23 @@ func (s *service) createWidget(ctx context.Context, id, spaceID uuid.UUID, widge
 	widget, err := s.store.CreateWidget(ctx, params)
 	if err != nil {
 		return sqlc.Widget{}, fmt.Errorf("failed to create widget: %w", err)
+	}
+
+	return widget, nil
+}
+
+func (s *service) updateWidget(ctx context.Context, id uuid.UUID, xPos, yPos int32, minimized bool, data json.RawMessage) (sqlc.Widget, error) {
+	params := sqlc.UpdateWidgetParams{
+		ID:        id,
+		XPos:      xPos,
+		YPos:      yPos,
+		Minimized: minimized,
+		Data:      data,
+	}
+
+	widget, err := s.store.UpdateWidget(ctx, params)
+	if err != nil {
+		return sqlc.Widget{}, fmt.Errorf("failed to update widget: %w", err)
 	}
 
 	return widget, nil

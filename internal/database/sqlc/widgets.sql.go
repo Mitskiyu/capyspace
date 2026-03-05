@@ -54,55 +54,28 @@ func (q *Queries) CreateWidget(ctx context.Context, arg CreateWidgetParams) (Wid
 	return i, err
 }
 
-const updateWidgetData = `-- name: UpdateWidgetData :one
+const updateWidget = `-- name: UpdateWidget :one
 UPDATE widgets
-SET data = $2
+SET x_pos = $2, y_pos = $3, minimized = $4, data = $5
 WHERE id = $1
 RETURNING id, space_id, type, x_pos, y_pos, minimized, data, created_at, modified_at
 `
 
-type UpdateWidgetDataParams struct {
-	ID   uuid.UUID
-	Data json.RawMessage
-}
-
-func (q *Queries) UpdateWidgetData(ctx context.Context, arg UpdateWidgetDataParams) (Widget, error) {
-	row := q.db.QueryRowContext(ctx, updateWidgetData, arg.ID, arg.Data)
-	var i Widget
-	err := row.Scan(
-		&i.ID,
-		&i.SpaceID,
-		&i.Type,
-		&i.XPos,
-		&i.YPos,
-		&i.Minimized,
-		&i.Data,
-		&i.CreatedAt,
-		&i.ModifiedAt,
-	)
-	return i, err
-}
-
-const updateWidgetPosition = `-- name: UpdateWidgetPosition :one
-UPDATE widgets
-SET x_pos = $2, y_pos = $3, minimized = $4
-WHERE id = $1
-RETURNING id, space_id, type, x_pos, y_pos, minimized, data, created_at, modified_at
-`
-
-type UpdateWidgetPositionParams struct {
+type UpdateWidgetParams struct {
 	ID        uuid.UUID
 	XPos      int32
 	YPos      int32
 	Minimized bool
+	Data      json.RawMessage
 }
 
-func (q *Queries) UpdateWidgetPosition(ctx context.Context, arg UpdateWidgetPositionParams) (Widget, error) {
-	row := q.db.QueryRowContext(ctx, updateWidgetPosition,
+func (q *Queries) UpdateWidget(ctx context.Context, arg UpdateWidgetParams) (Widget, error) {
+	row := q.db.QueryRowContext(ctx, updateWidget,
 		arg.ID,
 		arg.XPos,
 		arg.YPos,
 		arg.Minimized,
+		arg.Data,
 	)
 	var i Widget
 	err := row.Scan(

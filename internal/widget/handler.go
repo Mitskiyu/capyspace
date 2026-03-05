@@ -44,3 +44,21 @@ func (h *handler) CreateWidget(w http.ResponseWriter, r *http.Request) {
 
 	util.Encode(w, http.StatusCreated, widget)
 }
+
+func (h *handler) UpdateWidget(w http.ResponseWriter, r *http.Request) {
+	req, _, err := util.Decode[UpdateWidgetReq](r)
+	if err != nil {
+		log.Printf("%v at %s", err, r.URL.Path)
+		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		return
+	}
+
+	widget, err := h.service.updateWidget(r.Context(), req.ID, req.XPos, req.YPos, req.Minimized, req.Data)
+	if err != nil {
+		log.Printf("%v at %s", err, r.URL.Path)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	util.Encode(w, http.StatusOK, widget)
+}
