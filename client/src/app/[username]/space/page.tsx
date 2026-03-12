@@ -1,3 +1,4 @@
+import Canvas from "@/components/canvas";
 import { getSpace } from "@/lib/space";
 import { cookies } from "next/headers";
 
@@ -32,6 +33,7 @@ export default async function Page({
 					<div className="text-vibrant-cloud text-xl">
 						{username}&apos;s space: {space.id}
 					</div>
+					<Canvas space={space} />
 				</div>
 			);
 
