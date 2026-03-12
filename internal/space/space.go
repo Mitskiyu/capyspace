@@ -15,6 +15,7 @@ type Store interface {
 	CreateSpace(ctx context.Context, arg sqlc.CreateSpaceParams) (sqlc.Space, error)
 	GetSpaceByUsername(ctx context.Context, username string) (sqlc.Space, error)
 	GetSpaceByUserID(ctx context.Context, userID uuid.UUID) (sqlc.Space, error)
+	GetWidgetsBySpaceID(ctx context.Context, spaceID uuid.UUID) ([]sqlc.Widget, error)
 }
 
 type service struct {
@@ -50,16 +51,21 @@ func (s *service) createSpace(ctx context.Context, userID string) (bool, sqlc.Sp
 	return true, space, nil
 }
 
-func (s *service) getSpace(ctx context.Context, username string) (bool, sqlc.Space, error) {
+func (s *service) getSpace(ctx context.Context, username string) (bool, sqlc.Space, []sqlc.Widget, error) {
 	space, err := s.store.GetSpaceByUsername(ctx, username)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return false, sqlc.Space{}, nil
+			return false, sqlc.Space{}, nil, nil
 		}
-		return false, sqlc.Space{}, fmt.Errorf("failed to get space: %w", err)
+		return false, sqlc.Space{}, nil, fmt.Errorf("failed to get space: %w", err)
 	}
 
-	return true, space, nil
+	widgets, err := s.store.GetWidgetsBySpaceID(ctx, space.ID)
+	if err != nil {
+		return false, sqlc.Space{}, nil, fmt.Errorf("failed to get widgets: %w", err)
+	}
+
+	return true, space, widgets, nil
 }
 
 func (s *service) spaceMiddleware(ctx context.Context, userID string) (bool, sqlc.Space, error) {

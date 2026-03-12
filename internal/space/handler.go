@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/Mitskiyu/capyspace/internal/util"
+	"github.com/Mitskiyu/capyspace/internal/widget"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -48,7 +49,7 @@ func (h *handler) GetSpace(w http.ResponseWriter, r *http.Request) {
 	username := chi.URLParam(r, "username")
 
 	ctx := r.Context()
-	found, space, err := h.service.getSpace(ctx, username)
+	found, space, widgets, err := h.service.getSpace(ctx, username)
 	if err != nil {
 		log.Printf("%v at %s", err, r.URL.Path)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -59,9 +60,23 @@ func (h *handler) GetSpace(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Space not found", http.StatusNotFound)
 		return
 	}
+
+	widgetRes := make([]widget.Widget, len(widgets))
+	for i, wgt := range widgets {
+		widgetRes[i] = widget.Widget{
+			ID:        wgt.ID,
+			Type:      widget.Type(wgt.Type),
+			XPos:      wgt.XPos,
+			YPos:      wgt.YPos,
+			Minimized: wgt.Minimized,
+			Data:      wgt.Data,
+		}
+	}
+
 	res := SpaceRes{
 		ID:        space.ID.String(),
 		IsPrivate: space.IsPrivate,
+		Widgets:   widgetRes,
 	}
 
 	if space.IsPrivate {

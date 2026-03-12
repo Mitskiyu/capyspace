@@ -54,6 +54,44 @@ func (q *Queries) CreateWidget(ctx context.Context, arg CreateWidgetParams) (Wid
 	return i, err
 }
 
+const getWidgetsBySpaceID = `-- name: GetWidgetsBySpaceID :many
+SELECT id, space_id, type, x_pos, y_pos, minimized, data, created_at, modified_at FROM widgets
+WHERE space_id = $1
+`
+
+func (q *Queries) GetWidgetsBySpaceID(ctx context.Context, spaceID uuid.UUID) ([]Widget, error) {
+	rows, err := q.db.QueryContext(ctx, getWidgetsBySpaceID, spaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Widget
+	for rows.Next() {
+		var i Widget
+		if err := rows.Scan(
+			&i.ID,
+			&i.SpaceID,
+			&i.Type,
+			&i.XPos,
+			&i.YPos,
+			&i.Minimized,
+			&i.Data,
+			&i.CreatedAt,
+			&i.ModifiedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateWidget = `-- name: UpdateWidget :one
 UPDATE widgets
 SET x_pos = $2, y_pos = $3, minimized = $4, data = $5

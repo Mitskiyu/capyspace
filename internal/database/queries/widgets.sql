@@ -9,3 +9,7 @@ UPDATE widgets
 SET x_pos = $2, y_pos = $3, minimized = $4, data = $5
 WHERE id = $1
 RETURNING *;
+
+-- name: GetWidgetsBySpaceID :many
+SELECT * FROM widgets
+WHERE space_id = $1;
